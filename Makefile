@@ -5,15 +5,15 @@ before:
 	sudo cp my.cnf /etc/mysql/my.cnf
 # ビルド
 #	(cd go && go build -o webapp)
-# 起動
-	sudo systemctl restart nginx
-	sudo systemctl restart mysql
-#	sudo systemctl restart isucari.golang.service
 # 掃除
 	sudo rm /var/log/mysql/slow-query.log 2> /dev/null
 	sudo rm /var/log/nginx/access.log 2> /dev/null
 	sudo touch /var/log/mysql/slow-query.log
 	sudo touch /var/log/nginx/access.log
+# 起動
+	sudo systemctl restart nginx
+	sudo systemctl restart mysql
+#	sudo systemctl restart isucari.golang.service
 
 
 .PHONY: bench
