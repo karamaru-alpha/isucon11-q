@@ -1,3 +1,19 @@
+.PHONY: setup
+setup:
+	sudo apt install -y percona-toolkit git unzip
+	git init
+	git config --global user.name karamaru-alpha
+	git config --global user.email mrnk3078@gmail.com
+	git config credential.helper store
+	wget https://github.com/matsuu/kataribe/releases/download/v0.4.1/kataribe-v0.4.1_linux_amd64.zip -O kataribe.zip
+	unzip -o kataribe.zip
+	sudo mv kataribe /usr/local/bin/
+	sudo chmod +x /usr/local/bin/kataribe
+	sudo rm kataribe.zip
+	kataribe -generate
+	sudo rm README.md 2> /dev/null
+	sudo rm LICENSE 2> /dev/null
+
 .PHONY: before
 before:
 # 同期
