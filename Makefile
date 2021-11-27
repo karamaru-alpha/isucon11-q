@@ -23,5 +23,8 @@ bench:
 
 .PHONY: kataru
 kataru:
-	if [ ! -f kataribe.toml ]; then kataribe -generate; fi
-	(cd ../vagrant-isucon/isucon11-qualifier-standalone/ && vagrant ssh -c 'sudo cat /var/log/nginx/access.log') | kataribe
+	sudo cat /var/log/nginx/access.log | kataribe
+
+.PHONY: slow
+slow:
+	sudo pt-query-digest /var/log/mysql/slow-query.log
