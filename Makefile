@@ -17,10 +17,12 @@ setup:
 .PHONY: before
 before:
 # 同期
+	git stash
+	git pull origin main
 	sudo cp nginx.conf /etc/nginx/nginx.conf
 	sudo cp my.cnf /etc/mysql/my.cnf
 # ビルド
-#	(cd go && go build -o webapp)
+	(cd go && go build -o isucondition)
 # 掃除
 	sudo rm /var/log/mysql/slow-query.log 2> /dev/null
 	sudo rm /var/log/nginx/access.log 2> /dev/null
@@ -30,7 +32,7 @@ before:
 # 起動
 	sudo systemctl restart nginx
 	sudo systemctl restart mysql
-#	sudo systemctl restart isucari.golang.service
+	sudo systemctl restart isucondition.go.service
 
 
 .PHONY: bench
