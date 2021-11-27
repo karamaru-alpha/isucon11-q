@@ -422,7 +422,7 @@ func postSignout(c echo.Context) error {
 	return c.NoContent(http.StatusOK)
 }
 
-// * ET /api/user/me
+// * GET /api/user/me
 // サインインしている自分自身の情報を取得
 func getMe(c echo.Context) error {
 	jiaUserID, errStatusCode, err := getUserIDFromSession(c)
