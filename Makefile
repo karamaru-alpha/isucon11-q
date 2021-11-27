@@ -12,13 +12,13 @@ before:
 # 掃除
 	sudo rm /var/log/mysql/slow-query.log 2> /dev/null
 	sudo rm /var/log/nginx/access.log 2> /dev/null
+	sudo touch /var/log/mysql/slow-query.log
+	sudo touch /var/log/nginx/access.log
 
 
 .PHONY: bench
 bench:
 	(cd ../bench && sudo ./bench -all-addresses 127.0.0.11 -target 127.0.0.11:443 -tls -jia-service-url http://127.0.0.1:4999)
-
-
 
 .PHONY: kataru
 kataru:
