@@ -303,7 +303,7 @@ func getJIAServiceURL(tx *sqlx.Tx) string {
 	return config.URL
 }
 
-// POST /initialize
+// * POST /initialize
 // サービスを初期化
 func postInitialize(c echo.Context) error {
 	var request InitializeRequest
@@ -336,7 +336,7 @@ func postInitialize(c echo.Context) error {
 	})
 }
 
-// POST /api/auth
+// * POST /api/auth
 // サインアップ・サインイン
 func postAuthentication(c echo.Context) error {
 	reqJwt := strings.TrimPrefix(c.Request().Header.Get("Authorization"), "Bearer ")
@@ -393,7 +393,7 @@ func postAuthentication(c echo.Context) error {
 	return c.NoContent(http.StatusOK)
 }
 
-// POST /api/signout
+// * POST /api/signout
 // サインアウト
 func postSignout(c echo.Context) error {
 	_, errStatusCode, err := getUserIDFromSession(c)
@@ -422,7 +422,7 @@ func postSignout(c echo.Context) error {
 	return c.NoContent(http.StatusOK)
 }
 
-// GET /api/user/me
+// * ET /api/user/me
 // サインインしている自分自身の情報を取得
 func getMe(c echo.Context) error {
 	jiaUserID, errStatusCode, err := getUserIDFromSession(c)
@@ -439,7 +439,7 @@ func getMe(c echo.Context) error {
 	return c.JSON(http.StatusOK, res)
 }
 
-// GET /api/isu
+// * GET /api/isu
 // ISUの一覧を取得
 // ? POST /api/condition/:jia_isu_uuid で受け取ったコンディションの反映が遅れることをベンチマーカーは許容
 func getIsuList(c echo.Context) error {
@@ -522,7 +522,7 @@ func getIsuList(c echo.Context) error {
 	return c.JSON(http.StatusOK, responseList)
 }
 
-// POST /api/isu
+// * POST /api/isu
 // ISUを登録
 func postIsu(c echo.Context) error {
 	jiaUserID, errStatusCode, err := getUserIDFromSession(c)
@@ -656,7 +656,7 @@ func postIsu(c echo.Context) error {
 	return c.JSON(http.StatusCreated, isu)
 }
 
-// GET /api/isu/:jia_isu_uuid
+// * GET /api/isu/:jia_isu_uuid
 // ISUの情報を取得
 func getIsuID(c echo.Context) error {
 	jiaUserID, errStatusCode, err := getUserIDFromSession(c)
@@ -686,7 +686,7 @@ func getIsuID(c echo.Context) error {
 	return c.JSON(http.StatusOK, res)
 }
 
-// GET /api/isu/:jia_isu_uuid/icon
+// * GET /api/isu/:jia_isu_uuid/icon
 // ISUのアイコンを取得
 func getIsuIcon(c echo.Context) error {
 	jiaUserID, errStatusCode, err := getUserIDFromSession(c)
@@ -716,10 +716,10 @@ func getIsuIcon(c echo.Context) error {
 	return c.Blob(http.StatusOK, "", image)
 }
 
-// GET /api/isu/:jia_isu_uuid/graph
+// * GET /api/isu/:jia_isu_uuid/graph
 // ISUのコンディショングラフ描画のための情報を取得
 // ? POST /api/condition/:jia_isu_uuid で受け取ったコンディションの反映が遅れることをベンチマーカーは許容(1s)
-// * GETでスコア獲得
+// ! GETでスコア獲得
 func getIsuGraph(c echo.Context) error {
 	jiaUserID, errStatusCode, err := getUserIDFromSession(c)
 	if err != nil {
@@ -939,10 +939,10 @@ func calculateGraphDataPoint(isuConditions []IsuCondition) (GraphDataPoint, erro
 	return dataPoint, nil
 }
 
-// GET /api/condition/:jia_isu_uuid
+// *GET /api/condition/:jia_isu_uuid
 // ISUのコンディションを取得
 // ? POST /api/condition/:jia_isu_uuid で受け取ったコンディションの反映が遅れることをベンチマーカーは許容(1s)
-// * 最新GETでスコア獲得
+// ! 最新GETでスコア獲得
 func getIsuConditions(c echo.Context) error {
 	jiaUserID, errStatusCode, err := getUserIDFromSession(c)
 	if err != nil {
@@ -1079,7 +1079,7 @@ func calculateConditionLevel(condition string) (string, error) {
 	return conditionLevel, nil
 }
 
-// GET /api/trend
+// * GET /api/trend
 // ISUの性格毎の最新のコンディション情報
 // ? POST /api/condition/:jia_isu_uuid で受け取ったコンディションの反映が遅れることをベンチマーカーは許容
 func getTrend(c echo.Context) error {
@@ -1161,7 +1161,7 @@ func getTrend(c echo.Context) error {
 	return c.JSON(http.StatusOK, res)
 }
 
-// POST /api/condition/:jia_isu_uuid
+// * POST /api/condition/:jia_isu_uuid
 // ISUからのコンディションを受け取る
 func postIsuCondition(c echo.Context) error {
 	// TODO: 一定割合リクエストを落としてしのぐようにしたが、本来は全量さばけるようにすべき
