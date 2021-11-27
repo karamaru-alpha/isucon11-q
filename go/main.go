@@ -1083,20 +1083,20 @@ func calculateConditionLevel(condition string) (string, error) {
 // ISUの性格毎の最新のコンディション情報
 // ? POST /api/condition/:jia_isu_uuid で受け取ったコンディションの反映が遅れることをベンチマーカーは許容
 func getTrend(c echo.Context) error {
-	characterList := []Isu{}
-	err := db.Select(&characterList, "SELECT `character` FROM `isu` GROUP BY `character`")
-	if err != nil {
-		c.Logger().Errorf("db error: %v", err)
-		return c.NoContent(http.StatusInternalServerError)
+	characterList := []string{
+		"いじっぱり", "うっかりや", "おくびょう", "うっかりや", "おくびょう", "おだやか", "おっとり",
+		"おとなしい", "がんばりや", "きまぐれ", "さみしがり", "しんちょう", "すなお", "ずぶとい", "せっかち",
+		"てれや", "なまいき", "のうてんき", "のんき", "ひかえめ", "まじめ", "むじゃき",
+		"やんちゃ", "ゆうかん", "ようき", "れいせい", "わんぱく",
 	}
 
 	res := []TrendResponse{}
 
 	for _, character := range characterList {
 		isuList := []Isu{}
-		err = db.Select(&isuList,
+		err := db.Select(&isuList,
 			"SELECT * FROM `isu` WHERE `character` = ?",
-			character.Character,
+			character,
 		)
 		if err != nil {
 			c.Logger().Errorf("db error: %v", err)
@@ -1151,7 +1151,7 @@ func getTrend(c echo.Context) error {
 		})
 		res = append(res,
 			TrendResponse{
-				Character: character.Character,
+				Character: character,
 				Info:      characterInfoIsuConditions,
 				Warning:   characterWarningIsuConditions,
 				Critical:  characterCriticalIsuConditions,
