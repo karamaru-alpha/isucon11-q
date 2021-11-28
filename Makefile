@@ -29,6 +29,9 @@ before:
 	sudo touch /var/log/mysql/slow-query.log
 	sudo chown -R mysql /var/log/mysql/slow-query.log
 	sudo touch /var/log/nginx/access.log
+	sudo rm /var/log/go.log 2> /dev/null
+	sudo touch /var/log/go.log
+	sudo chmod 0666 /var/log/go.log
 # 起動
 	sudo systemctl restart nginx
 	sudo systemctl restart mysql
