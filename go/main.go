@@ -7,7 +7,9 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"io/ioutil"
+	goLog "log"
 	"math/rand"
 	"net/http"
 	"os"
@@ -194,6 +196,7 @@ func (mc *MySQLConnectionEnv) ConnectDB() (*sqlx.DB, error) {
 }
 
 func init() {
+	goLog.Println("initial")
 	sessionStore = sessions.NewCookieStore([]byte(getEnv("SESSION_KEY", "isucondition")))
 
 	key, err := ioutil.ReadFile(jiaJWTSigningKeyPath)
@@ -207,6 +210,16 @@ func init() {
 }
 
 func main() {
+	var err error
+
+	// TODO
+	logfile, err := os.OpenFile("/var/log/go.log", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0666)
+	if err != nil {
+		panic("cannnot open go.log:" + err.Error())
+	}
+	defer logfile.Close()
+	goLog.SetOutput(io.MultiWriter(logfile, os.Stdout))
+
 	e := echo.New()
 
 	e.Use(middleware.Recover())
@@ -235,7 +248,6 @@ func main() {
 
 	mySQLConnectionData = NewMySQLConnectionEnv()
 
-	var err error
 	db, err = mySQLConnectionData.ConnectDB()
 	if err != nil {
 		e.Logger.Fatalf("failed to connect db: %v", err)
