@@ -196,7 +196,6 @@ func (mc *MySQLConnectionEnv) ConnectDB() (*sqlx.DB, error) {
 }
 
 func init() {
-	goLog.Println("initial")
 	sessionStore = sessions.NewCookieStore([]byte(getEnv("SESSION_KEY", "isucondition")))
 
 	key, err := ioutil.ReadFile(jiaJWTSigningKeyPath)
@@ -315,6 +314,7 @@ func getJIAServiceURL(tx *sqlx.Tx) string {
 // * POST /initialize
 // サービスを初期化
 func postInitialize(c echo.Context) error {
+	goLog.Println("initial")
 	var request InitializeRequest
 	err := c.Bind(&request)
 	if err != nil {
