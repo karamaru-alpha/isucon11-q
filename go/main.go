@@ -1218,9 +1218,9 @@ func postIsuCondition(c echo.Context) error {
 		}
 		args = append(args, []interface{}{jiaIsuUUID, timestamp, v.IsSitting, v.Condition, v.Message}...)
 		if i == 0 {
-			placeHolders.WriteString(" (?, ?, ?, ?, ?, ?)")
+			placeHolders.WriteString(" (?, ?, ?, ?, ?)")
 		} else {
-			placeHolders.WriteString(",(?, ?, ?, ?, ?, ?)")
+			placeHolders.WriteString(",(?, ?, ?, ?, ?)")
 		}
 	}
 
