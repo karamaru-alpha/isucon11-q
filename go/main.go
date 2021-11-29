@@ -497,19 +497,13 @@ func getIsuList(c echo.Context) error {
 
 		var formattedCondition *GetIsuConditionResponse
 		if foundLastCondition {
-			conditionLevel, err := calculateConditionLevel(lastCondition.Condition)
-			if err != nil {
-				c.Logger().Error(err)
-				return c.NoContent(http.StatusInternalServerError)
-			}
-
 			formattedCondition = &GetIsuConditionResponse{
 				JIAIsuUUID:     lastCondition.JIAIsuUUID,
 				IsuName:        isu.Name,
 				Timestamp:      lastCondition.Timestamp.Unix(),
 				IsSitting:      lastCondition.IsSitting,
 				Condition:      lastCondition.Condition,
-				ConditionLevel: conditionLevel,
+				ConditionLevel: lastCondition.Level,
 				Message:        lastCondition.Message,
 			}
 		}
@@ -1129,16 +1123,11 @@ func getTrend(c echo.Context) error {
 
 			if len(conditions) > 0 {
 				isuLastCondition := conditions[0]
-				conditionLevel, err := calculateConditionLevel(isuLastCondition.Condition)
-				if err != nil {
-					c.Logger().Error(err)
-					return c.NoContent(http.StatusInternalServerError)
-				}
 				trendCondition := TrendCondition{
 					ID:        isu.ID,
 					Timestamp: isuLastCondition.Timestamp.Unix(),
 				}
-				switch conditionLevel {
+				switch isuLastCondition.Level {
 				case "info":
 					characterInfoIsuConditions = append(characterInfoIsuConditions, &trendCondition)
 				case "warning":
