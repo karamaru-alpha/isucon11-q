@@ -1024,7 +1024,6 @@ func getIsuConditionsFromDB(db *sqlx.DB, jiaIsuUUID string, endTime time.Time, c
 		levels = append(levels, k)
 	}
 	inPlaceHolders := "(?" + strings.Repeat(",?", len(levels)-1) + ")"
-	goLog.Print(inPlaceHolders, "\n")
 
 	conditions := []IsuCondition{}
 	var err error
@@ -1036,24 +1035,19 @@ func getIsuConditionsFromDB(db *sqlx.DB, jiaIsuUUID string, endTime time.Time, c
 			args = append(args, v)
 		}
 		args = append(args, limit)
-		goLog.Print(args, "\n")
 		err = db.Select(&conditions,
 			`SELECT * FROM isu_condition WHERE jia_isu_uuid = ?	AND timestamp < ? AND level IN `+inPlaceHolders+`	ORDER BY timestamp DESC LIMIT ?`, args...,
 		)
-
-		// err = db.Select(&conditions,
-		// 	"SELECT * FROM `isu_condition` WHERE `jia_isu_uuid` = ?"+
-		// 		"	AND `timestamp` < ?"+
-		// 		"	ORDER BY `timestamp` DESC",
-		// 	jiaIsuUUID, endTime,
-		// )
 	} else {
+		args := make([]interface{}, 0, len(levels)+4)
+		args = append(args, jiaIsuUUID, endTime, startTime)
+		for _, v := range levels {
+			args = append(args, v)
+		}
+		args = append(args, limit)
 		err = db.Select(&conditions,
-			"SELECT * FROM `isu_condition` WHERE `jia_isu_uuid` = ?"+
-				"	AND `timestamp` < ?"+
-				"	AND ? <= `timestamp`"+
-				"	ORDER BY `timestamp` DESC",
-			jiaIsuUUID, endTime, startTime,
+			`SELECT * FROM isu_condition WHERE jia_isu_uuid = ? AND timestamp < ? AND ? <= timestamp AND level IN `+inPlaceHolders+` ORDER BY timestamp DESC LIMIT ?`,
+			args...,
 		)
 	}
 	if err != nil {
