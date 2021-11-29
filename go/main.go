@@ -1023,13 +1023,20 @@ func getIsuConditionsFromDB(db *sqlx.DB, jiaIsuUUID string, endTime time.Time, c
 	for k := range conditionLevel {
 		levels = append(levels, k)
 	}
-	inPlaceHolders := "(?" + strings.Repeat(",?", len(levels)) + ")"
+	inPlaceHolders := "(?" + strings.Repeat(",?", len(levels)-1) + ")"
 	goLog.Print(inPlaceHolders, "\n")
 
 	conditions := []IsuCondition{}
 	var err error
 
 	if startTime.IsZero() {
+		args := make([]interface{}, 0, len(levels)+3)
+		args = append(args, jiaIsuUUID, endTime)
+		for _, v := range levels {
+			args = append(args, v)
+		}
+		args = append(args, limit)
+		goLog.Print(args, "\n")
 		err = db.Select(&conditions,
 			"SELECT * FROM `isu_condition` WHERE `jia_isu_uuid` = ?"+
 				"	AND `timestamp` < ?"+
