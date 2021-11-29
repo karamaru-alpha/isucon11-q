@@ -4,6 +4,7 @@ before:
 	git stash
 	git pull origin main
 	sudo cp nginx.conf /etc/nginx/nginx.conf
+	sudo cp isucondition.conf /etc/nginx/sites-enabled/isucondition.conf
 	sudo cp my.cnf /etc/mysql/my.cnf
 # ビルド
 	(cd go && go build -o isucondition)
