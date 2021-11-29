@@ -1019,6 +1019,12 @@ func getIsuConditions(c echo.Context) error {
 func getIsuConditionsFromDB(db *sqlx.DB, jiaIsuUUID string, endTime time.Time, conditionLevel map[string]interface{}, startTime time.Time,
 	limit int, isuName string) ([]*GetIsuConditionResponse, error) {
 
+	var levels []string
+	for k := range conditionLevel {
+		levels = append(levels, k)
+	}
+	goLog.Print(levels, "\n")
+
 	conditions := []IsuCondition{}
 	var err error
 
