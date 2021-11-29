@@ -989,7 +989,7 @@ func getIsuConditionsFromDB(db *sqlx.DB, jiaIsuUUID string, endTime time.Time, c
 		}
 		args = append(args, limit)
 		err = db.Select(&conditions,
-			`SELECT * FROM isu_condition WHERE jia_isu_uuid = ?	AND timestamp < ? AND level IN `+inPlaceHolders+`	ORDER BY timestamp DESC LIMIT ?`, args...,
+			`SELECT * FROM isu_condition WHERE jia_isu_uuid = ?	AND timestamp < ? AND level IN `+inPlaceHolders+` ORDER BY timestamp DESC LIMIT ?`, args...,
 		)
 	} else {
 		args := make([]interface{}, 0, len(levels)+4)
