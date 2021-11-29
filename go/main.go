@@ -959,8 +959,10 @@ func getIsuConditions(c echo.Context) error {
 		startTime = time.Unix(startTimeInt64, 0)
 	}
 
-	isuName, ok := isuNames[jiaIsuUUID+jiaUserID]
-	if !ok {
+	var isuName string
+	if name, ok := isuNames[jiaIsuUUID+jiaUserID]; ok {
+		isuName = name
+	} else {
 		err = db.Get(&isuName,
 			"SELECT name FROM `isu` WHERE `jia_isu_uuid` = ? AND `jia_user_id` = ?",
 			jiaIsuUUID, jiaUserID,
