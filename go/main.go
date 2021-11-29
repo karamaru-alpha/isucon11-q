@@ -1023,7 +1023,8 @@ func getIsuConditionsFromDB(db *sqlx.DB, jiaIsuUUID string, endTime time.Time, c
 	for k := range conditionLevel {
 		levels = append(levels, k)
 	}
-	goLog.Print(levels, "\n")
+	inPlaceHolders := "(?" + strings.Repeat(",?", len(levels)) + ")"
+	goLog.Print(inPlaceHolders, "\n")
 
 	conditions := []IsuCondition{}
 	var err error
