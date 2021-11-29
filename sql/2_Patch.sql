@@ -19,7 +19,5 @@ WHERE
 
 ALTER TABLE
   `isu`
-ALTER COLUMN
-  `image`
-SET
-  INVISIBLE;
+MODIFY
+  COLUMN `image` longblob INVISIBLE;
