@@ -88,6 +88,7 @@ type IsuCondition struct {
 	Timestamp  time.Time `db:"timestamp"`
 	IsSitting  bool      `db:"is_sitting"`
 	Condition  string    `db:"condition"`
+	Level      string    `db:"level"`
 	Message    string    `db:"message"`
 	CreatedAt  time.Time `db:"created_at"`
 }
@@ -1212,21 +1213,25 @@ func postIsuCondition(c echo.Context) error {
 	args := make([]interface{}, 0, len(req)*6)
 	placeHolders := &strings.Builder{}
 	for i, v := range req {
-		timestamp := time.Unix(v.Timestamp, 0)
 		if !isValidConditionFormat(v.Condition) {
 			return c.String(http.StatusBadRequest, "bad request body")
 		}
-		args = append(args, []interface{}{jiaIsuUUID, timestamp, v.IsSitting, v.Condition, v.Message}...)
+		timestamp := time.Unix(v.Timestamp, 0)
+		level, err := calculateConditionLevel(v.Condition)
+		if err != nil {
+			return c.String(http.StatusBadRequest, "bad request body")
+		}
+		args = append(args, []interface{}{jiaIsuUUID, timestamp, v.IsSitting, v.Condition, v.Message, level}...)
 		if i == 0 {
-			placeHolders.WriteString(" (?, ?, ?, ?, ?)")
+			placeHolders.WriteString(" (?, ?, ?, ?, ?, ?)")
 		} else {
-			placeHolders.WriteString(",(?, ?, ?, ?, ?)")
+			placeHolders.WriteString(",(?, ?, ?, ?, ?, ?)")
 		}
 	}
 
 	_, err = tx.Exec(
 		"INSERT INTO `isu_condition`"+
-			"	(`jia_isu_uuid`, `timestamp`, `is_sitting`, `condition`, `message`)"+
+			"	(`jia_isu_uuid`, `timestamp`, `is_sitting`, `condition`, `message`, `level`)"+
 			"	VALUES"+placeHolders.String(),
 		args...)
 	if err != nil {
