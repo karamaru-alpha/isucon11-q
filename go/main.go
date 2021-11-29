@@ -301,6 +301,8 @@ func getUserIDFromSession(c echo.Context) (string, int, error) {
 	return jiaUserID, 0, nil
 }
 
+var isuNames = make(map[string]string, 100)
+
 // * POST /initialize
 // サービスを初期化
 func postInitialize(c echo.Context) error {
@@ -318,6 +320,15 @@ func postInitialize(c echo.Context) error {
 	if err != nil {
 		c.Logger().Errorf("exec init.sh error: %v", err)
 		return c.NoContent(http.StatusInternalServerError)
+	}
+
+	var isuList []Isu
+	err = db.Select(&isuList, `SELECT * FROM isu`)
+	if err != nil {
+		return c.NoContent(http.StatusInternalServerError)
+	}
+	for _, v := range isuList {
+		isuNames[v.JIAIsuUUID+v.JIAUserID] = v.Name
 	}
 
 	return c.JSON(http.StatusOK, InitializeResponse{
@@ -560,6 +571,8 @@ func postIsu(c echo.Context) error {
 		c.Logger().Errorf("db error: %v", err)
 		return c.NoContent(http.StatusInternalServerError)
 	}
+
+	isuNames[jiaIsuUUID+jiaUserID] = isuName
 
 	targetURL := jiaServiceUrl + "/api/activate"
 	body := JIAServiceRequest{postIsuConditionTargetBaseURL, jiaIsuUUID}
@@ -946,18 +959,20 @@ func getIsuConditions(c echo.Context) error {
 		startTime = time.Unix(startTimeInt64, 0)
 	}
 
-	var isuName string
-	err = db.Get(&isuName,
-		"SELECT name FROM `isu` WHERE `jia_isu_uuid` = ? AND `jia_user_id` = ?",
-		jiaIsuUUID, jiaUserID,
-	)
-	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return c.String(http.StatusNotFound, "not found: isu")
-		}
+	isuName, ok := isuNames[jiaIsuUUID+jiaUserID]
+	if !ok {
+		err = db.Get(&isuName,
+			"SELECT name FROM `isu` WHERE `jia_isu_uuid` = ? AND `jia_user_id` = ?",
+			jiaIsuUUID, jiaUserID,
+		)
+		if err != nil {
+			if errors.Is(err, sql.ErrNoRows) {
+				return c.String(http.StatusNotFound, "not found: isu")
+			}
 
-		c.Logger().Errorf("db error: %v", err)
-		return c.NoContent(http.StatusInternalServerError)
+			c.Logger().Errorf("db error: %v", err)
+			return c.NoContent(http.StatusInternalServerError)
+		}
 	}
 
 	conditionsResponse, err := getIsuConditionsFromDB(db, jiaIsuUUID, endTime, conditionLevel, startTime, conditionLimit, isuName)
