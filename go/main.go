@@ -308,7 +308,6 @@ func postInitialize(c echo.Context) error {
 	var request InitializeRequest
 	err := c.Bind(&request)
 	if err != nil {
-		goLog.Print(err)
 		return c.String(http.StatusBadRequest, "bad request body")
 	}
 
@@ -317,7 +316,6 @@ func postInitialize(c echo.Context) error {
 	cmd.Stdout = os.Stderr
 	err = cmd.Run()
 	if err != nil {
-		goLog.Print(err)
 		c.Logger().Errorf("exec init.sh error: %v", err)
 		return c.NoContent(http.StatusInternalServerError)
 	}

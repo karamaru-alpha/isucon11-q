@@ -16,3 +16,10 @@ SET
   `level` = "critical"
 WHERE
   `condition` = "is_dirty=true,is_overweight=true,is_broken=true";
+
+ALTER TABLE
+  `isu`
+ALTER COLUMN
+  `image`
+SET
+  INVISIBLE;
