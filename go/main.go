@@ -572,8 +572,6 @@ func postIsu(c echo.Context) error {
 		return c.NoContent(http.StatusInternalServerError)
 	}
 
-	isuNames[jiaIsuUUID+jiaUserID] = isuName
-
 	targetURL := jiaServiceUrl + "/api/activate"
 	body := JIAServiceRequest{postIsuConditionTargetBaseURL, jiaIsuUUID}
 	bodyJSON, err := json.Marshal(body)
@@ -636,6 +634,7 @@ func postIsu(c echo.Context) error {
 		return c.NoContent(http.StatusInternalServerError)
 	}
 
+	isuNames[jiaIsuUUID+jiaUserID] = isuName
 	return c.JSON(http.StatusCreated, isu)
 }
 
