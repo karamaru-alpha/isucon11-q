@@ -1038,11 +1038,15 @@ func getIsuConditionsFromDB(db *sqlx.DB, jiaIsuUUID string, endTime time.Time, c
 		args = append(args, limit)
 		goLog.Print(args, "\n")
 		err = db.Select(&conditions,
-			"SELECT * FROM `isu_condition` WHERE `jia_isu_uuid` = ?"+
-				"	AND `timestamp` < ?"+
-				"	ORDER BY `timestamp` DESC",
-			jiaIsuUUID, endTime,
+			`SELECT * FROM isu_condition WHERE jia_isu_uuid = ?	AND timestamp < ? AND level IN `+inPlaceHolders+`	ORDER BY timestamp DESC`, args...,
 		)
+
+		// err = db.Select(&conditions,
+		// 	"SELECT * FROM `isu_condition` WHERE `jia_isu_uuid` = ?"+
+		// 		"	AND `timestamp` < ?"+
+		// 		"	ORDER BY `timestamp` DESC",
+		// 	jiaIsuUUID, endTime,
+		// )
 	} else {
 		err = db.Select(&conditions,
 			"SELECT * FROM `isu_condition` WHERE `jia_isu_uuid` = ?"+
