@@ -176,6 +176,28 @@ type JIAServiceRequest struct {
 }
 
 // onMemory
+type omIsuExistT struct {
+	M sync.RWMutex
+	V map[string]interface{}
+}
+
+var omIsuExist omIsuExistT
+
+func (o *omIsuExistT) Exist(k string) bool {
+	o.M.RLock()
+	defer o.M.RUnlock()
+	_, ok := o.V[k]
+	return ok
+}
+
+func (o *omIsuExistT) Set(i []Isu) {
+	o.M.Lock()
+	for _, v := range i {
+		o.V[v.JIAIsuUUID] = struct{}{}
+	}
+	o.M.Unlock()
+}
+
 type omIsuNamesT struct {
 	M sync.RWMutex
 	V map[string]string
@@ -359,6 +381,9 @@ func getUserIDFromSession(c echo.Context) (string, int, error) {
 // サービスを初期化
 func postInitialize(c echo.Context) error {
 
+	omIsuExist = omIsuExistT{
+		V: make(map[string]interface{}, 100),
+	}
 	omTrendRes = omTrendResT{
 		T: time.Now().Add(-time.Minute),
 	}
@@ -387,6 +412,9 @@ func postInitialize(c echo.Context) error {
 	if err != nil {
 		return c.NoContent(http.StatusInternalServerError)
 	}
+
+	omIsuExist.Set(isuList)
+
 	omIsuNames.M.Lock()
 	for _, v := range isuList {
 		omIsuNames.V[v.JIAIsuUUID+v.JIAUserID] = v.Name
@@ -697,6 +725,8 @@ func postIsu(c echo.Context) error {
 		goLog.Printf("db error: %v", err)
 		return c.NoContent(http.StatusInternalServerError)
 	}
+
+	omIsuExist.Set([]Isu{isu})
 
 	omIsuNames.M.Lock()
 	omIsuNames.V[jiaIsuUUID+jiaUserID] = isuName
@@ -1242,15 +1272,10 @@ func postIsuCondition(c echo.Context) error {
 		return c.String(http.StatusBadRequest, "bad request body")
 	}
 
-	var count int
-	err = db.Get(&count, "SELECT COUNT(*) FROM `isu` WHERE `jia_isu_uuid` = ?", jiaIsuUUID)
-	if err != nil {
-		goLog.Printf("db error: %v", err)
-		return c.NoContent(http.StatusInternalServerError)
-	}
-	if count == 0 {
+	if !omIsuExist.Exist(jiaIsuUUID) {
 		return c.String(http.StatusNotFound, "not found: isu")
 	}
+
 	IsuConditionPosts.mu.Lock()
 	defer IsuConditionPosts.mu.Unlock()
 	for _, v := range req {
