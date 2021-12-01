@@ -791,15 +791,19 @@ func generateIsuGraphResponse(jiaIsuUUID string, graphDate time.Time) ([]GraphRe
 	conditionsInThisHour := []IsuCondition{}
 	timestampsInThisHour := []int64{}
 	var startTimeInThisHour time.Time
-	var conditions []IsuCondition
-	err := db.Select(&conditions, `
+	var condition IsuCondition
+	rows, err := db.Queryx(`
 		SELECT * FROM isu_condition WHERE jia_isu_uuid = ? AND ? <= timestamp AND timestamp < ? ORDER BY timestamp ASC
 	`, jiaIsuUUID, graphDate, graphDate.Add(24*time.Hour))
 	if err != nil {
 		return nil, fmt.Errorf("db error: %v", err)
 	}
 
-	for _, condition := range conditions {
+	for rows.Next() {
+		err = rows.StructScan(&condition)
+		if err != nil {
+			return nil, err
+		}
 		truncatedConditionTime := condition.Timestamp.Truncate(time.Hour)
 		if truncatedConditionTime != startTimeInThisHour {
 			if len(conditionsInThisHour) > 0 {
