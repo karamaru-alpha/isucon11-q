@@ -798,6 +798,7 @@ func generateIsuGraphResponse(jiaIsuUUID string, graphDate time.Time) ([]GraphRe
 	if err != nil {
 		return nil, fmt.Errorf("db error: %v", err)
 	}
+	defer rows.Close()
 
 	for rows.Next() {
 		err = rows.StructScan(&condition)
