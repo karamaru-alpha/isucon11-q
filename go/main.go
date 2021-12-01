@@ -209,7 +209,7 @@ func (o *omTrendResT) Get() ([]TrendResponse, bool) {
 
 func (o *omTrendResT) Set(v []TrendResponse) {
 	o.M.Lock()
-	o.T = time.Now().Add(time.Second * 5)
+	o.T = time.Now().Add(time.Second * 20)
 	o.V = v
 	o.M.Unlock()
 }
@@ -301,7 +301,6 @@ func main() {
 		e.Logger.Fatalf("missing: POST_ISUCONDITION_TARGET_BASE_URL")
 		return
 	}
-	go postIsuConditionLoop()
 
 	socketFile := "/tmp/go.sock"
 	os.Remove(socketFile)
@@ -393,6 +392,8 @@ func postInitialize(c echo.Context) error {
 		omIsuNames.V[v.JIAIsuUUID+v.JIAUserID] = v.Name
 	}
 	omIsuNames.M.Unlock()
+
+	go postIsuConditionLoop()
 
 	return c.JSON(http.StatusOK, InitializeResponse{
 		Language: "go",
