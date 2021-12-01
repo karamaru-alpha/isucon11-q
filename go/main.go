@@ -1147,7 +1147,7 @@ var IsuConditionPosts = struct {
 }{}
 
 func postIsuConditionLoop() {
-	for range time.Tick(time.Second) {
+	for range time.Tick(time.Millisecond * 500) {
 		IsuConditionPosts.mu.Lock()
 		args := make([]interface{}, 0, len(IsuConditionPosts.IsuConditionList)*6)
 		placeHolders := &strings.Builder{}
