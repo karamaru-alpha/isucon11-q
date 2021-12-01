@@ -180,12 +180,31 @@ var IsuConditionPosts = struct {
 	mu               sync.Mutex
 	IsuConditionList []IsuCondition
 }{}
-var omTrendRes = struct {
+
+type omTrendResT struct {
 	M sync.RWMutex
 	T time.Time
 	V []TrendResponse
-}{
+}
+
+var omTrendRes = omTrendResT{
 	T: time.Now().Add(-time.Minute),
+}
+
+func (o *omTrendResT) Get() ([]TrendResponse, bool) {
+	o.M.RLock()
+	defer o.M.RUnlock()
+	if o.T.After(time.Now()) {
+		return o.V, true
+	}
+	return nil, false
+}
+
+func (o *omTrendResT) Set(v []TrendResponse) {
+	o.M.Lock()
+	o.T = time.Now().Add(time.Second)
+	o.V = v
+	o.M.Unlock()
 }
 
 func getEnv(key string, defaultValue string) string {
@@ -1081,12 +1100,9 @@ func calculateConditionLevel(condition string) (string, error) {
 // ? POST /api/condition/:jia_isu_uuid で受け取ったコンディションの反映が遅れることをベンチマーカーは許容
 func getTrend(c echo.Context) error {
 
-	omTrendRes.M.RLock()
-	if omTrendRes.T.After(time.Now()) {
-		omTrendRes.M.RUnlock()
-		return c.JSON(http.StatusOK, omTrendRes.V)
+	if v, found := omTrendRes.Get(); found {
+		return c.JSON(http.StatusOK, v)
 	}
-	omTrendRes.M.RUnlock()
 
 	characterList := []string{
 		"いじっぱり", "うっかりや", "おくびょう", "おだやか", "おっとり", "おとなしい", "がんばりや", "きまぐれ",
@@ -1157,10 +1173,7 @@ func getTrend(c echo.Context) error {
 			})
 	}
 
-	omTrendRes.M.Lock()
-	omTrendRes.V = res
-	omTrendRes.T = time.Now().Add(time.Second)
-	omTrendRes.M.Unlock()
+	omTrendRes.Set(res)
 
 	return c.JSON(http.StatusOK, res)
 }
@@ -1194,11 +1207,6 @@ func postIsuConditionLoop() {
 // * POST /api/condition/:jia_isu_uuid
 // ISUからのコンディションを受け取る
 func postIsuCondition(c echo.Context) error {
-	// dropProbability := 0.2
-	// if rand.Float64() <= dropProbability {
-	// 	return c.NoContent(http.StatusAccepted)
-	// }
-
 	jiaIsuUUID := c.Param("jia_isu_uuid")
 	if jiaIsuUUID == "" {
 		return c.String(http.StatusBadRequest, "missing: jia_isu_uuid")
