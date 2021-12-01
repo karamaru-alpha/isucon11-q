@@ -306,6 +306,9 @@ var isuNames = make(map[string]string, 100)
 // * POST /initialize
 // サービスを初期化
 func postInitialize(c echo.Context) error {
+
+	goLog.Print("postInitialize", c.Request().Header, "\n\n")
+
 	goLog.Println("initial")
 	var request InitializeRequest
 	err := c.Bind(&request)
