@@ -174,6 +174,9 @@ type JIAServiceRequest struct {
 	IsuUUID       string `json:"isu_uuid"`
 }
 
+// onMemory
+var isuNames = make(map[string]string, 100)
+
 func getEnv(key string, defaultValue string) string {
 	val := os.Getenv(key)
 	if val != "" {
@@ -302,8 +305,6 @@ func getUserIDFromSession(c echo.Context) (string, int, error) {
 
 	return jiaUserID, 0, nil
 }
-
-var isuNames = make(map[string]string, 100)
 
 // * POST /initialize
 // サービスを初期化
