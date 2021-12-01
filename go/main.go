@@ -10,7 +10,6 @@ import (
 	"io"
 	"io/ioutil"
 	goLog "log"
-	"math/rand"
 	"net/http"
 	"os"
 	"os/exec"
@@ -1176,10 +1175,10 @@ func postIsuConditionLoop() {
 // ISUからのコンディションを受け取る
 func postIsuCondition(c echo.Context) error {
 	// TODO: 一定割合リクエストを落としてしのぐようにしたが、本来は全量さばけるようにすべき
-	dropProbability := 0.3
-	if rand.Float64() <= dropProbability {
-		return c.NoContent(http.StatusAccepted)
-	}
+	// dropProbability := 0.2
+	// if rand.Float64() <= dropProbability {
+	// 	return c.NoContent(http.StatusAccepted)
+	// }
 
 	jiaIsuUUID := c.Param("jia_isu_uuid")
 	if jiaIsuUUID == "" {
