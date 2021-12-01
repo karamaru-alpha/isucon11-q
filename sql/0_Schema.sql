@@ -11,13 +11,13 @@ CREATE TABLE `isu` (
   `jia_isu_uuid` CHAR(36) NOT NULL UNIQUE,
   `name` VARCHAR(255) NOT NULL,
   `image` LONGBLOB,
-  `character` VARCHAR(20),
+  `character` VARCHAR(20) NOT NULL,
   `jia_user_id` VARCHAR(30) NOT NULL,
   `created_at` DATETIME(6) DEFAULT CURRENT_TIMESTAMP(6),
   `updated_at` DATETIME(6) DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6),
   PRIMARY KEY(`id`),
-  INDEX jia_user_id_jia_isu_uuid_idx (`jia_user_id`, `jia_isu_uuid`),
-  INDEX jia_isu_uuid_idx (`jia_isu_uuid`),
+  -- INDEX jia_user_id_idx (`jia_user_id`),
+  INDEX jia_isu_uuid_jia_user_id_idx (`jia_isu_uuid`, `jia_user_id`),
   INDEX character_idx (`character`)
 ) ENGINE = InnoDB DEFAULT CHARACTER SET = utf8mb4;
 

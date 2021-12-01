@@ -684,8 +684,8 @@ func postIsu(c echo.Context) error {
 	var isu Isu
 	err = tx.Get(
 		&isu,
-		"SELECT * FROM `isu` WHERE `jia_user_id` = ? AND `jia_isu_uuid` = ?",
-		jiaUserID, jiaIsuUUID)
+		"SELECT * FROM `isu` WHERE `jia_isu_uuid` = ? AND `jia_user_id` = ?",
+		jiaIsuUUID, jiaUserID)
 	if err != nil {
 		goLog.Printf("db error: %v", err)
 		return c.NoContent(http.StatusInternalServerError)
@@ -719,8 +719,8 @@ func getIsuID(c echo.Context) error {
 	jiaIsuUUID := c.Param("jia_isu_uuid")
 
 	var res Isu
-	err = db.Get(&res, "SELECT * FROM `isu` WHERE `jia_user_id` = ? AND `jia_isu_uuid` = ?",
-		jiaUserID, jiaIsuUUID)
+	err = db.Get(&res, "SELECT * FROM `isu` WHERE AND `jia_isu_uuid` = ? AND `jia_user_id` = ?",
+		jiaIsuUUID, jiaUserID)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return c.String(http.StatusNotFound, "not found: isu")
@@ -749,8 +749,8 @@ func getIsuIcon(c echo.Context) error {
 	jiaIsuUUID := c.Param("jia_isu_uuid")
 
 	var image []byte
-	err = db.Get(&image, "SELECT `image` FROM `isu` WHERE `jia_user_id` = ? AND `jia_isu_uuid` = ?",
-		jiaUserID, jiaIsuUUID)
+	err = db.Get(&image, "SELECT `image` FROM `isu` WHERE `jia_isu_uuid` = ? AND `jia_user_id` = ?",
+		jiaIsuUUID, jiaUserID)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return c.String(http.StatusNotFound, "not found: isu")
@@ -790,8 +790,8 @@ func getIsuGraph(c echo.Context) error {
 	date := time.Unix(datetimeInt64, 0).Truncate(time.Hour)
 
 	var count int
-	err = db.Get(&count, "SELECT COUNT(*) FROM `isu` WHERE `jia_user_id` = ? AND `jia_isu_uuid` = ?",
-		jiaUserID, jiaIsuUUID)
+	err = db.Get(&count, "SELECT COUNT(*) FROM `isu` WHERE `jia_isu_uuid` = ? AND `jia_user_id` = ?",
+		jiaIsuUUID, jiaUserID)
 	if err != nil {
 		goLog.Printf("db error: %v", err)
 		return c.NoContent(http.StatusInternalServerError)
