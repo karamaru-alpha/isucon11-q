@@ -719,7 +719,7 @@ func getIsuID(c echo.Context) error {
 	jiaIsuUUID := c.Param("jia_isu_uuid")
 
 	var res Isu
-	err = db.Get(&res, "SELECT * FROM `isu` WHERE AND `jia_isu_uuid` = ? AND `jia_user_id` = ?",
+	err = db.Get(&res, "SELECT * FROM `isu` WHERE `jia_isu_uuid` = ? AND `jia_user_id` = ?",
 		jiaIsuUUID, jiaUserID)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
