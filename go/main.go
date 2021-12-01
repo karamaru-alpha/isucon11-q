@@ -288,17 +288,17 @@ func getUserIDFromSession(c echo.Context) (string, int, error) {
 	}
 
 	jiaUserID := _jiaUserID.(string)
-	var count int
+	// var count int
 
-	err = db.Get(&count, "SELECT COUNT(*) FROM `user` WHERE `jia_user_id` = ?",
-		jiaUserID)
-	if err != nil {
-		return "", http.StatusInternalServerError, fmt.Errorf("db error: %v", err)
-	}
+	// err = db.Get(&count, "SELECT COUNT(*) FROM `user` WHERE `jia_user_id` = ?",
+	// 	jiaUserID)
+	// if err != nil {
+	// 	return "", http.StatusInternalServerError, fmt.Errorf("db error: %v", err)
+	// }
 
-	if count == 0 {
-		return "", http.StatusUnauthorized, fmt.Errorf("not found: user")
-	}
+	// if count == 0 {
+	// 	return "", http.StatusUnauthorized, fmt.Errorf("not found: user")
+	// }
 
 	return jiaUserID, 0, nil
 }
@@ -1174,11 +1174,6 @@ func postIsuConditionLoop() {
 // * POST /api/condition/:jia_isu_uuid
 // ISUからのコンディションを受け取る
 func postIsuCondition(c echo.Context) error {
-	// TODO: 一定割合リクエストを落としてしのぐようにしたが、本来は全量さばけるようにすべき
-	// dropProbability := 0.2
-	// if rand.Float64() <= dropProbability {
-	// 	return c.NoContent(http.StatusAccepted)
-	// }
 
 	jiaIsuUUID := c.Param("jia_isu_uuid")
 	if jiaIsuUUID == "" {
