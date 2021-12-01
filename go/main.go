@@ -1082,7 +1082,7 @@ func calculateConditionLevel(condition string) (string, error) {
 func getTrend(c echo.Context) error {
 
 	omTrendRes.M.RLock()
-	if omTrendRes.T.After(time.Now().Add(-time.Second)) {
+	if omTrendRes.T.After(time.Now().Add(-time.Millisecond * 500)) {
 		omTrendRes.M.RUnlock()
 		return c.JSON(http.StatusOK, omTrendRes.V)
 	}
