@@ -175,7 +175,12 @@ type JIAServiceRequest struct {
 }
 
 // onMemory
-var isuNames map[string]string
+type omIsuNamesT struct {
+	M sync.RWMutex
+	V map[string]string
+}
+
+var omIsuNames omIsuNamesT
 
 type IsuConditionPostsT struct {
 	mu               sync.Mutex
@@ -344,7 +349,9 @@ func postInitialize(c echo.Context) error {
 	omTrendRes = omTrendResT{
 		T: time.Now().Add(-time.Minute),
 	}
-	isuNames = make(map[string]string, 100)
+	omIsuNames = omIsuNamesT{
+		V: make(map[string]string, 100),
+	}
 	IsuConditionPosts = IsuConditionPostsT{}
 
 	goLog.Print("postInitialize", c.Request().Header, "\n\n")
@@ -370,9 +377,11 @@ func postInitialize(c echo.Context) error {
 	if err != nil {
 		return c.NoContent(http.StatusInternalServerError)
 	}
+	omIsuNames.M.Lock()
 	for _, v := range isuList {
-		isuNames[v.JIAIsuUUID+v.JIAUserID] = v.Name
+		omIsuNames.V[v.JIAIsuUUID+v.JIAUserID] = v.Name
 	}
+	omIsuNames.M.Unlock()
 
 	return c.JSON(http.StatusOK, InitializeResponse{
 		Language: "go",
@@ -677,7 +686,9 @@ func postIsu(c echo.Context) error {
 		return c.NoContent(http.StatusInternalServerError)
 	}
 
-	isuNames[jiaIsuUUID+jiaUserID] = isuName
+	omIsuNames.M.Lock()
+	omIsuNames.V[jiaIsuUUID+jiaUserID] = isuName
+	omIsuNames.M.Unlock()
 	return c.JSON(http.StatusCreated, isu)
 }
 
@@ -1001,22 +1012,11 @@ func getIsuConditions(c echo.Context) error {
 		startTime = time.Unix(startTimeInt64, 0)
 	}
 
-	var isuName string
-	if name, ok := isuNames[jiaIsuUUID+jiaUserID]; ok {
-		isuName = name
-	} else {
-		err = db.Get(&isuName,
-			"SELECT name FROM `isu` WHERE `jia_isu_uuid` = ? AND `jia_user_id` = ?",
-			jiaIsuUUID, jiaUserID,
-		)
-		if err != nil {
-			if errors.Is(err, sql.ErrNoRows) {
-				return c.String(http.StatusNotFound, "not found: isu")
-			}
-
-			c.Logger().Errorf("db error: %v", err)
-			return c.NoContent(http.StatusInternalServerError)
-		}
+	omIsuNames.M.RLock()
+	isuName, ok := omIsuNames.V[jiaIsuUUID+jiaUserID]
+	omIsuNames.M.RUnlock()
+	if !ok {
+		return c.String(http.StatusNotFound, "not found: isu")
 	}
 
 	conditionsResponse, err := getIsuConditionsFromDB(db, jiaIsuUUID, endTime, conditionLevel, startTime, conditionLimit, isuName)
