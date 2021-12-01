@@ -181,7 +181,7 @@ var IsuConditionPosts = struct {
 	IsuConditionList []IsuCondition
 }{}
 var omTrendRes = struct {
-	M sync.Mutex
+	M sync.RWMutex
 	T time.Time
 	V []TrendResponse
 }{
@@ -1080,12 +1080,13 @@ func calculateConditionLevel(condition string) (string, error) {
 // ISUの性格毎の最新のコンディション情報
 // ? POST /api/condition/:jia_isu_uuid で受け取ったコンディションの反映が遅れることをベンチマーカーは許容
 func getTrend(c echo.Context) error {
-	omTrendRes.M.Lock()
-	defer omTrendRes.M.Unlock()
 
+	omTrendRes.M.RLock()
 	if omTrendRes.T.After(time.Now().Add(-3 * time.Second)) {
+		omTrendRes.M.RUnlock()
 		return c.JSON(http.StatusOK, omTrendRes.V)
 	}
+	omTrendRes.M.RUnlock()
 
 	characterList := []string{
 		"いじっぱり", "うっかりや", "おくびょう", "おだやか", "おっとり", "おとなしい", "がんばりや", "きまぐれ",
@@ -1156,8 +1157,10 @@ func getTrend(c echo.Context) error {
 			})
 	}
 
+	omTrendRes.M.Lock()
 	omTrendRes.V = res
 	omTrendRes.T = time.Now()
+	omTrendRes.M.Unlock()
 
 	return c.JSON(http.StatusOK, res)
 }
