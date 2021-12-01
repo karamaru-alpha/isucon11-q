@@ -17,6 +17,7 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
@@ -262,6 +263,8 @@ func main() {
 		e.Logger.Fatalf("missing: POST_ISUCONDITION_TARGET_BASE_URL")
 		return
 	}
+
+	go postIsuConditionLoop()
 
 	serverPort := fmt.Sprintf(":%v", getEnv("SERVER_APP_PORT", "3000"))
 	e.Logger.Fatal(e.Start(serverPort))
@@ -1138,6 +1141,37 @@ func getTrend(c echo.Context) error {
 	return c.JSON(http.StatusOK, res)
 }
 
+var IsuConditionPosts = struct {
+	mu               sync.Mutex
+	IsuConditionList []IsuCondition
+}{}
+
+func postIsuConditionLoop() {
+	for range time.Tick(time.Millisecond * 500) {
+		IsuConditionPosts.mu.Lock()
+		args := make([]interface{}, 0, len(IsuConditionPosts.IsuConditionList)*6)
+		placeHolders := &strings.Builder{}
+		for i, v := range IsuConditionPosts.IsuConditionList {
+			args = append(args, []interface{}{v.JIAIsuUUID, v.Timestamp, v.IsSitting, v.Condition, v.Message, v.Level}...)
+			if i == 0 {
+				placeHolders.WriteString(" (?, ?, ?, ?, ?, ?)")
+			} else {
+				placeHolders.WriteString(",(?, ?, ?, ?, ?, ?)")
+			}
+		}
+		_, err := db.Exec(
+			"INSERT INTO `isu_condition`"+
+				"	(`jia_isu_uuid`, `timestamp`, `is_sitting`, `condition`, `message`, `level`)"+
+				"	VALUES"+placeHolders.String(),
+			args...)
+		if err != nil {
+			goLog.Println(err.Error())
+		}
+		IsuConditionPosts.IsuConditionList = []IsuCondition{}
+		IsuConditionPosts.mu.Unlock()
+	}
+}
+
 // * POST /api/condition/:jia_isu_uuid
 // ISUからのコンディションを受け取る
 func postIsuCondition(c echo.Context) error {
@@ -1169,35 +1203,24 @@ func postIsuCondition(c echo.Context) error {
 	if count == 0 {
 		return c.String(http.StatusNotFound, "not found: isu")
 	}
-
-	args := make([]interface{}, 0, len(req)*6)
-	placeHolders := &strings.Builder{}
-	for i, v := range req {
+	IsuConditionPosts.mu.Lock()
+	defer IsuConditionPosts.mu.Unlock()
+	for _, v := range req {
 		if !isValidConditionFormat(v.Condition) {
 			return c.String(http.StatusBadRequest, "bad request body")
 		}
-		timestamp := time.Unix(v.Timestamp, 0)
 		level, err := calculateConditionLevel(v.Condition)
 		if err != nil {
 			return c.String(http.StatusBadRequest, "bad request body")
 		}
-		args = append(args, []interface{}{jiaIsuUUID, timestamp, v.IsSitting, v.Condition, v.Message, level}...)
-		if i == 0 {
-			placeHolders.WriteString(" (?, ?, ?, ?, ?, ?)")
-		} else {
-			placeHolders.WriteString(",(?, ?, ?, ?, ?, ?)")
-		}
-	}
-
-	_, err = db.Exec(
-		"INSERT INTO `isu_condition`"+
-			"	(`jia_isu_uuid`, `timestamp`, `is_sitting`, `condition`, `message`, `level`)"+
-			"	VALUES"+placeHolders.String(),
-		args...)
-	if err != nil {
-		goLog.Println(err.Error())
-		c.Logger().Errorf("db error: %v", err)
-		return c.NoContent(http.StatusInternalServerError)
+		IsuConditionPosts.IsuConditionList = append(IsuConditionPosts.IsuConditionList, IsuCondition{
+			JIAIsuUUID: jiaIsuUUID,
+			Timestamp:  time.Unix(v.Timestamp, 0),
+			IsSitting:  v.IsSitting,
+			Condition:  v.Condition,
+			Message:    v.Message,
+			Level:      level,
+		})
 	}
 
 	return c.NoContent(http.StatusAccepted)
