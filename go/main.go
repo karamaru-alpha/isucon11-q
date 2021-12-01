@@ -368,9 +368,6 @@ func postInitialize(c echo.Context) error {
 	}
 	IsuConditionPosts = IsuConditionPostsT{}
 
-	goLog.Print("postInitialize", c.Request().Header, "\n\n")
-
-	goLog.Println("initial")
 	var request InitializeRequest
 	err := c.Bind(&request)
 	if err != nil {
