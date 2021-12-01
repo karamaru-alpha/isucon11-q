@@ -1083,7 +1083,7 @@ func getTrend(c echo.Context) error {
 	omTrendRes.M.Lock()
 	defer omTrendRes.M.Unlock()
 
-	if omTrendRes.T.After(time.Now().Add(-time.Second)) {
+	if omTrendRes.T.After(time.Now().Add(-3 * time.Second)) {
 		return c.JSON(http.StatusOK, omTrendRes.V)
 	}
 
