@@ -175,11 +175,14 @@ type JIAServiceRequest struct {
 }
 
 // onMemory
-var isuNames = make(map[string]string, 100)
-var IsuConditionPosts = struct {
+var isuNames map[string]string
+
+type IsuConditionPostsT struct {
 	mu               sync.Mutex
 	IsuConditionList []IsuCondition
-}{}
+}
+
+var IsuConditionPosts IsuConditionPostsT
 
 type omTrendResT struct {
 	M sync.RWMutex
@@ -187,9 +190,7 @@ type omTrendResT struct {
 	V []TrendResponse
 }
 
-var omTrendRes = omTrendResT{
-	T: time.Now().Add(-time.Minute),
-}
+var omTrendRes omTrendResT
 
 func (o *omTrendResT) Get() ([]TrendResponse, bool) {
 	o.M.RLock()
@@ -339,6 +340,12 @@ func getUserIDFromSession(c echo.Context) (string, int, error) {
 // * POST /initialize
 // サービスを初期化
 func postInitialize(c echo.Context) error {
+
+	omTrendRes = omTrendResT{
+		T: time.Now().Add(-time.Minute),
+	}
+	isuNames = make(map[string]string, 100)
+	IsuConditionPosts = IsuConditionPostsT{}
 
 	goLog.Print("postInitialize", c.Request().Header, "\n\n")
 
