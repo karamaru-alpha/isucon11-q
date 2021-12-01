@@ -10,6 +10,7 @@ import (
 	"io"
 	"io/ioutil"
 	goLog "log"
+	"net"
 	"net/http"
 	"os"
 	"os/exec"
@@ -301,8 +302,22 @@ func main() {
 		e.Logger.Fatalf("missing: POST_ISUCONDITION_TARGET_BASE_URL")
 		return
 	}
-
 	go postIsuConditionLoop()
+
+	socketFile := "/tmp/go.sock"
+	os.Remove(socketFile)
+
+	l, err := net.Listen("unix", socketFile)
+	if err != nil {
+		e.Logger.Fatal(err)
+	}
+
+	err = os.Chmod(socketFile, 0777)
+	if err != nil {
+		e.Logger.Fatal(err)
+	}
+
+	e.Listener = l
 
 	serverPort := fmt.Sprintf(":%v", getEnv("SERVER_APP_PORT", "3000"))
 	e.Logger.Fatal(e.Start(serverPort))
