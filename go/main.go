@@ -268,6 +268,8 @@ func main() {
 
 	e := echo.New()
 
+	e.Logger.SetLevel(log.WARN)
+
 	e.Use(middleware.Recover())
 	e.Use(middleware.LoggerWithConfig(middleware.LoggerConfig{
 		Output: fp,
