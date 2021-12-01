@@ -1228,7 +1228,7 @@ func getTrend(c echo.Context) error {
 }
 
 func postIsuConditionLoop() {
-	for range time.Tick(time.Millisecond * 500) {
+	for range time.Tick(time.Second) {
 		IsuConditionPosts.mu.Lock()
 		args := make([]interface{}, 0, len(IsuConditionPosts.IsuConditionList)*6)
 		placeHolders := &strings.Builder{}
