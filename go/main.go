@@ -176,6 +176,17 @@ type JIAServiceRequest struct {
 
 // onMemory
 var isuNames = make(map[string]string, 100)
+var IsuConditionPosts = struct {
+	mu               sync.Mutex
+	IsuConditionList []IsuCondition
+}{}
+var omTrendRes = struct {
+	M sync.Mutex
+	T time.Time
+	V []TrendResponse
+}{
+	T: time.Now().Add(-time.Minute),
+}
 
 func getEnv(key string, defaultValue string) string {
 	val := os.Getenv(key)
@@ -1069,6 +1080,13 @@ func calculateConditionLevel(condition string) (string, error) {
 // ISUの性格毎の最新のコンディション情報
 // ? POST /api/condition/:jia_isu_uuid で受け取ったコンディションの反映が遅れることをベンチマーカーは許容
 func getTrend(c echo.Context) error {
+	omTrendRes.M.Lock()
+	defer omTrendRes.M.Unlock()
+
+	if omTrendRes.T.Before(time.Now().Add(-time.Second)) {
+		return c.JSON(http.StatusOK, omTrendRes.V)
+	}
+
 	characterList := []string{
 		"いじっぱり", "うっかりや", "おくびょう", "おだやか", "おっとり", "おとなしい", "がんばりや", "きまぐれ",
 		"さみしがり", "しんちょう", "すなお", "ずぶとい", "せっかち", "てれや", "なまいき", "のうてんき",
@@ -1138,13 +1156,11 @@ func getTrend(c echo.Context) error {
 			})
 	}
 
+	omTrendRes.V = res
+	omTrendRes.T = time.Now()
+
 	return c.JSON(http.StatusOK, res)
 }
-
-var IsuConditionPosts = struct {
-	mu               sync.Mutex
-	IsuConditionList []IsuCondition
-}{}
 
 func postIsuConditionLoop() {
 	for range time.Tick(time.Millisecond * 500) {
