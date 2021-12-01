@@ -17,6 +17,7 @@ before:
 	sudo rm /var/log/go.log 2> /dev/null
 	sudo touch /var/log/go.log
 	sudo chmod 0666 /var/log/go.log
+	sudo cp /dev/null /var/log/nginx/error.log
 # 起動
 	sudo systemctl restart nginx
 	sudo systemctl restart mysql

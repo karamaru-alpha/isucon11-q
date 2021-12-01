@@ -10,6 +10,7 @@ import (
 	"io"
 	"io/ioutil"
 	goLog "log"
+	"math/rand"
 	"net/http"
 	"os"
 	"os/exec"
@@ -1194,6 +1195,10 @@ func postIsuConditionLoop() {
 // * POST /api/condition/:jia_isu_uuid
 // ISUからのコンディションを受け取る
 func postIsuCondition(c echo.Context) error {
+	dropProbability := 0.3
+	if rand.Float64() <= dropProbability {
+		return c.NoContent(http.StatusAccepted)
+	}
 
 	jiaIsuUUID := c.Param("jia_isu_uuid")
 	if jiaIsuUUID == "" {
