@@ -261,9 +261,17 @@ func main() {
 	defer logfile.Close()
 	goLog.SetOutput(io.MultiWriter(logfile, os.Stdout))
 
+	fp, err := os.OpenFile("/var/log/echo.log", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
+	if err != nil {
+		panic(err)
+	}
+
 	e := echo.New()
 
 	e.Use(middleware.Recover())
+	e.Use(middleware.LoggerWithConfig(middleware.LoggerConfig{
+		Output: fp,
+	}))
 
 	e.POST("/initialize", postInitialize)
 
