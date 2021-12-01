@@ -1186,6 +1186,11 @@ func postIsuConditionLoop() {
 				placeHolders.WriteString(",(?, ?, ?, ?, ?, ?)")
 			}
 		}
+		IsuConditionPosts.IsuConditionList = []IsuCondition{}
+		IsuConditionPosts.mu.Unlock()
+		if len(args) == 0 {
+			continue
+		}
 		_, err := db.Exec(
 			"INSERT INTO `isu_condition`"+
 				"	(`jia_isu_uuid`, `timestamp`, `is_sitting`, `condition`, `message`, `level`)"+
@@ -1194,8 +1199,6 @@ func postIsuConditionLoop() {
 		if err != nil {
 			goLog.Println(err.Error())
 		}
-		IsuConditionPosts.IsuConditionList = []IsuCondition{}
-		IsuConditionPosts.mu.Unlock()
 	}
 }
 
