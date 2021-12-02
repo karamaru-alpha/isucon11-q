@@ -254,7 +254,7 @@ func (o *omTrendResT) Get() ([]TrendResponse, bool) {
 
 func (o *omTrendResT) Set(v []TrendResponse) {
 	o.M.Lock()
-	o.T = time.Now().Add(time.Second * 20)
+	o.T = time.Now().Add(time.Hour)
 	o.V = v
 	o.M.Unlock()
 }
@@ -449,6 +449,8 @@ func postInitialize(c echo.Context) error {
 	omIsuNames.M.Unlock()
 
 	go postIsuConditionLoop()
+
+	getTrend(echo.New().NewContext(nil, nil))
 
 	return c.JSON(http.StatusOK, InitializeResponse{
 		Language: "go",
