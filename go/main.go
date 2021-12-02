@@ -201,7 +201,7 @@ func (o *omIsuListT) Set(i []Isu) {
 
 type omIsuExistT struct {
 	M sync.RWMutex
-	V map[string]interface{}
+	V map[string]interface{} //jia_isu_uuid
 }
 
 var omIsuExist omIsuExistT
@@ -450,7 +450,7 @@ func postInitialize(c echo.Context) error {
 
 	go postIsuConditionLoop()
 
-	getTrend(echo.New().NewContext(nil, nil))
+	initTrend()
 
 	return c.JSON(http.StatusOK, InitializeResponse{
 		Language: "go",
@@ -1366,4 +1366,80 @@ func isValidConditionFormat(conditionStr string) bool {
 
 func getIndex(c echo.Context) error {
 	return c.File(frontendContentsPath + "/index.html")
+}
+
+func initTrend() error {
+
+	characterList := []string{
+		"いじっぱり", "うっかりや", "おくびょう", "おだやか", "おっとり", "おとなしい", "がんばりや", "きまぐれ",
+		"さみしがり", "しんちょう", "すなお", "ずぶとい", "せっかち", "てれや", "なまいき", "のうてんき",
+		"のんき", "ひかえめ", "まじめ", "むじゃき", "やんちゃ", "ゆうかん", "ようき", "れいせい", "わんぱく",
+	}
+
+	res := []TrendResponse{}
+
+	for _, character := range characterList {
+		isuList := []Isu{}
+		err := db.Select(&isuList,
+			"SELECT * FROM `isu` WHERE `character` = ?",
+			character,
+		)
+		if err != nil {
+			goLog.Printf("db error: %v", err)
+			return err
+		}
+
+		characterInfoIsuConditions := []*TrendCondition{}
+		characterWarningIsuConditions := []*TrendCondition{}
+		characterCriticalIsuConditions := []*TrendCondition{}
+		for _, isu := range isuList {
+			conditions := []IsuCondition{}
+			err = db.Select(&conditions,
+				"SELECT * FROM `isu_condition` WHERE `jia_isu_uuid` = ? ORDER BY timestamp DESC LIMIT 1",
+				isu.JIAIsuUUID,
+			)
+			if err != nil {
+				goLog.Printf("db error: %v", err)
+				return err
+			}
+
+			if len(conditions) > 0 {
+				isuLastCondition := conditions[0]
+				trendCondition := TrendCondition{
+					ID:        isu.ID,
+					Timestamp: isuLastCondition.Timestamp.Unix(),
+				}
+				switch isuLastCondition.Level {
+				case "info":
+					characterInfoIsuConditions = append(characterInfoIsuConditions, &trendCondition)
+				case "warning":
+					characterWarningIsuConditions = append(characterWarningIsuConditions, &trendCondition)
+				case "critical":
+					characterCriticalIsuConditions = append(characterCriticalIsuConditions, &trendCondition)
+				}
+			}
+
+		}
+
+		sort.Slice(characterInfoIsuConditions, func(i, j int) bool {
+			return characterInfoIsuConditions[i].Timestamp > characterInfoIsuConditions[j].Timestamp
+		})
+		sort.Slice(characterWarningIsuConditions, func(i, j int) bool {
+			return characterWarningIsuConditions[i].Timestamp > characterWarningIsuConditions[j].Timestamp
+		})
+		sort.Slice(characterCriticalIsuConditions, func(i, j int) bool {
+			return characterCriticalIsuConditions[i].Timestamp > characterCriticalIsuConditions[j].Timestamp
+		})
+		res = append(res,
+			TrendResponse{
+				Character: character,
+				Info:      characterInfoIsuConditions,
+				Warning:   characterWarningIsuConditions,
+				Critical:  characterCriticalIsuConditions,
+			})
+	}
+
+	omTrendRes.Set(res)
+
+	return nil
 }
