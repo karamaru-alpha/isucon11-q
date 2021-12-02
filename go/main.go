@@ -776,19 +776,14 @@ func getIsuID(c echo.Context) error {
 
 	jiaIsuUUID := c.Param("jia_isu_uuid")
 
-	var res Isu
-	err = db.Get(&res, "SELECT * FROM `isu` WHERE `jia_isu_uuid` = ? AND `jia_user_id` = ?",
-		jiaIsuUUID, jiaUserID)
-	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return c.String(http.StatusNotFound, "not found: isu")
+	isuList, _ := omIsuList.Get(jiaUserID)
+	for _, v := range isuList {
+		if v.JIAIsuUUID == jiaIsuUUID {
+			return c.JSON(http.StatusOK, v)
 		}
-
-		goLog.Printf("db error: %v", err)
-		return c.NoContent(http.StatusInternalServerError)
 	}
 
-	return c.JSON(http.StatusOK, res)
+	return c.String(http.StatusNotFound, "not found: isu")
 }
 
 // * GET /api/isu/:jia_isu_uuid/icon
