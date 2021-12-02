@@ -571,18 +571,17 @@ func getIsuList(c echo.Context) error {
 		goLog.Print(err)
 		return c.NoContent(http.StatusInternalServerError)
 	}
+	responseList := []GetIsuListResponse{}
 
-	isuList, found := omIsuList.Get(jiaUserID)
-	if !found {
-		goLog.Printf("not found")
-		return c.NoContent(http.StatusInternalServerError)
+	isuList, ok := omIsuList.Get(jiaUserID)
+	if !ok {
+		goLog.Print("no")
+		return c.JSON(http.StatusOK, responseList)
 	}
-
 	sort.Slice(isuList, func(i, j int) bool {
 		return isuList[i].ID > isuList[j].ID
 	})
 
-	responseList := []GetIsuListResponse{}
 	for _, isu := range isuList {
 		var lastCondition IsuCondition
 		foundLastCondition := true
