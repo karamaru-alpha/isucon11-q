@@ -176,6 +176,29 @@ type JIAServiceRequest struct {
 }
 
 // onMemory
+type omIsuListT struct {
+	M sync.RWMutex
+	V map[string][]Isu //jia_user_id
+}
+
+var omIsuList omIsuListT
+
+func (o *omIsuListT) Get(k string) ([]Isu, bool) {
+	o.M.RLock()
+	defer o.M.RUnlock()
+
+	v, ok := o.V[k]
+	return v, ok
+}
+
+func (o *omIsuListT) Set(i []Isu) {
+	o.M.Lock()
+	for _, v := range i {
+		o.V[v.JIAUserID] = append(o.V[v.JIAUserID], v)
+	}
+	o.M.Unlock()
+}
+
 type omIsuExistT struct {
 	M sync.RWMutex
 	V map[string]interface{}
@@ -381,6 +404,9 @@ func getUserIDFromSession(c echo.Context) (string, int, error) {
 // サービスを初期化
 func postInitialize(c echo.Context) error {
 
+	omIsuList = omIsuListT{
+		V: make(map[string][]Isu, 100),
+	}
 	omIsuExist = omIsuExistT{
 		V: make(map[string]interface{}, 100),
 	}
@@ -413,6 +439,7 @@ func postInitialize(c echo.Context) error {
 		return c.NoContent(http.StatusInternalServerError)
 	}
 
+	omIsuList.Set(isuList)
 	omIsuExist.Set(isuList)
 
 	omIsuNames.M.Lock()
@@ -545,15 +572,15 @@ func getIsuList(c echo.Context) error {
 		return c.NoContent(http.StatusInternalServerError)
 	}
 
-	isuList := []Isu{}
-	err = db.Select(
-		&isuList,
-		"SELECT * FROM `isu` WHERE `jia_user_id` = ? ORDER BY `id` DESC",
-		jiaUserID)
-	if err != nil {
-		goLog.Printf("db error: %v", err)
+	isuList, found := omIsuList.Get(jiaUserID)
+	if !found {
+		goLog.Printf("not found")
 		return c.NoContent(http.StatusInternalServerError)
 	}
+
+	sort.Slice(isuList, func(i, j int) bool {
+		return isuList[i].ID < isuList[j].ID
+	})
 
 	responseList := []GetIsuListResponse{}
 	for _, isu := range isuList {
@@ -726,6 +753,7 @@ func postIsu(c echo.Context) error {
 		return c.NoContent(http.StatusInternalServerError)
 	}
 
+	omIsuList.Set([]Isu{isu})
 	omIsuExist.Set([]Isu{isu})
 
 	omIsuNames.M.Lock()
