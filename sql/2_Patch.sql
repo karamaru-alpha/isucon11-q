@@ -21,3 +21,6 @@ ALTER TABLE
   `isu`
 MODIFY
   COLUMN `image` longblob INVISIBLE;
+
+ALTER TABLE
+  `isu_condition` DROP COLUMN `created_at`;
