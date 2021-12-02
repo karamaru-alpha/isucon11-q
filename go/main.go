@@ -842,14 +842,15 @@ func getIsuGraph(c echo.Context) error {
 	}
 	date := time.Unix(datetimeInt64, 0).Truncate(time.Hour)
 
-	var count int
-	err = db.Get(&count, "SELECT COUNT(*) FROM `isu` WHERE `jia_isu_uuid` = ? AND `jia_user_id` = ?",
-		jiaIsuUUID, jiaUserID)
-	if err != nil {
-		goLog.Printf("db error: %v", err)
-		return c.NoContent(http.StatusInternalServerError)
+	var isExists bool
+	isuList, _ := omIsuList.Get(jiaUserID)
+	for _, v := range isuList {
+		if v.JIAIsuUUID == jiaIsuUUID {
+			isExists = true
+			break
+		}
 	}
-	if count == 0 {
+	if !isExists {
 		return c.String(http.StatusNotFound, "not found: isu")
 	}
 
