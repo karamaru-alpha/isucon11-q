@@ -228,12 +228,26 @@ type omIsuNamesT struct {
 
 var omIsuNames omIsuNamesT
 
-type IsuConditionPostsT struct {
-	mu               sync.Mutex
-	IsuConditionList []IsuCondition
+type omIsuConditionPostsT struct {
+	M sync.RWMutex
+	V []IsuCondition
 }
 
-var IsuConditionPosts IsuConditionPostsT
+var omIsuConditionPosts omIsuConditionPostsT
+
+func (o *omIsuConditionPostsT) Get() []IsuCondition {
+	o.M.RLock()
+	defer o.M.RUnlock()
+	isuConList := o.V
+	o.V = []IsuCondition{}
+	return isuConList
+}
+
+func (o *omIsuConditionPostsT) Set(v []IsuCondition) {
+	o.M.Lock()
+	o.V = append(o.V, v...)
+	o.M.Unlock()
+}
 
 type omTrendResT struct {
 	M sync.RWMutex
@@ -422,7 +436,7 @@ func postInitialize(c echo.Context) error {
 	omIsuNames = omIsuNamesT{
 		V: make(map[string]string, 100),
 	}
-	IsuConditionPosts = IsuConditionPostsT{}
+	omIsuConditionPosts = omIsuConditionPostsT{}
 
 	var request InitializeRequest
 	err := c.Bind(&request)
@@ -1268,21 +1282,20 @@ func getTrend(c echo.Context) error {
 
 func postIsuConditionLoop() {
 	for range time.Tick(time.Millisecond * 500) {
-		IsuConditionPosts.mu.Lock()
-		args := make([]interface{}, 0, len(IsuConditionPosts.IsuConditionList)*6)
+		isuConList := omIsuConditionPosts.Get()
+		if len(isuConList) == 0 {
+			continue
+		}
+
+		args := make([]interface{}, 0, len(isuConList)*6)
 		placeHolders := &strings.Builder{}
-		for i, v := range IsuConditionPosts.IsuConditionList {
+		for i, v := range isuConList {
 			args = append(args, []interface{}{v.JIAIsuUUID, v.Timestamp, v.IsSitting, v.Condition, v.Message, v.Level}...)
 			if i == 0 {
 				placeHolders.WriteString(" (?, ?, ?, ?, ?, ?)")
 			} else {
 				placeHolders.WriteString(",(?, ?, ?, ?, ?, ?)")
 			}
-		}
-		IsuConditionPosts.IsuConditionList = []IsuCondition{}
-		IsuConditionPosts.mu.Unlock()
-		if len(args) == 0 {
-			continue
 		}
 		_, err := db.Exec(
 			"INSERT INTO `isu_condition`"+
@@ -1315,8 +1328,8 @@ func postIsuCondition(c echo.Context) error {
 		return c.String(http.StatusNotFound, "not found: isu")
 	}
 
-	IsuConditionPosts.mu.Lock()
-	defer IsuConditionPosts.mu.Unlock()
+	var isuConList []IsuCondition
+
 	for _, v := range req {
 		if !isValidConditionFormat(v.Condition) {
 			return c.String(http.StatusBadRequest, "bad request body")
@@ -1325,7 +1338,7 @@ func postIsuCondition(c echo.Context) error {
 		if err != nil {
 			return c.String(http.StatusBadRequest, "bad request body")
 		}
-		IsuConditionPosts.IsuConditionList = append(IsuConditionPosts.IsuConditionList, IsuCondition{
+		isuConList = append(isuConList, IsuCondition{
 			JIAIsuUUID: jiaIsuUUID,
 			Timestamp:  time.Unix(v.Timestamp, 0),
 			IsSitting:  v.IsSitting,
@@ -1334,6 +1347,8 @@ func postIsuCondition(c echo.Context) error {
 			Level:      level,
 		})
 	}
+
+	omIsuConditionPosts.Set(isuConList)
 
 	return c.NoContent(http.StatusAccepted)
 }
