@@ -92,7 +92,7 @@ type IsuCondition struct {
 	Condition  string    `db:"condition"`
 	Level      string    `db:"level"`
 	Message    string    `db:"message"`
-	CreatedAt  time.Time `db:"created_at"`
+	// CreatedAt  time.Time `db:"created_at"`
 }
 
 type MySQLConnectionEnv struct {

@@ -28,7 +28,7 @@ CREATE TABLE `isu_condition` (
   `is_sitting` TINYINT(1) NOT NULL,
   `condition` VARCHAR(100) NOT NULL,
   `message` VARCHAR(100) NOT NULL,
-  `created_at` DATETIME(6) DEFAULT CURRENT_TIMESTAMP(6),
+  -- `created_at` DATETIME(6) DEFAULT CURRENT_TIMESTAMP(6),
   PRIMARY KEY(`jia_isu_uuid`, `timestamp`)
 ) ENGINE = InnoDB DEFAULT CHARACTER SET = utf8mb4;
 
