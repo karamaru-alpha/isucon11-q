@@ -253,10 +253,10 @@ func (o *omTrendResT) Get() ([]TrendResponse, bool) {
 }
 
 func (o *omTrendResT) Set(v []TrendResponse) {
-	o.M.Lock()
+	// o.M.Lock()
 	o.T = time.Now().Add(time.Second * 3)
 	o.V = v
-	o.M.Unlock()
+	// o.M.Unlock()
 }
 
 func getEnv(key string, defaultValue string) string {
@@ -1183,6 +1183,9 @@ func getTrend(c echo.Context) error {
 	if v, found := omTrendRes.Get(); found {
 		return c.JSON(http.StatusOK, v)
 	}
+
+	defer omTrendRes.M.Lock()
+	defer omTrendRes.M.Unlock()
 
 	characterList := []string{
 		"いじっぱり", "うっかりや", "おくびょう", "おだやか", "おっとり", "おとなしい", "がんばりや", "きまぐれ",
