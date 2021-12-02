@@ -1077,7 +1077,7 @@ func getIsuConditionsFromDB(db *sqlx.DB, jiaIsuUUID string, endTime time.Time, c
 	for k := range conditionLevel {
 		levels = append(levels, k)
 	}
-	inPlaceHolders := "(?" + strings.Repeat(",?", len(levels)-1) + ")"
+	var inPlaceHolders string
 
 	conditions := []IsuCondition{}
 	var err error
@@ -1085,22 +1085,28 @@ func getIsuConditionsFromDB(db *sqlx.DB, jiaIsuUUID string, endTime time.Time, c
 	if startTime.IsZero() {
 		args := make([]interface{}, 0, len(levels)+3)
 		args = append(args, jiaIsuUUID, endTime)
-		for _, v := range levels {
-			args = append(args, v)
+		if len(levels) < 3 {
+			for _, v := range levels {
+				args = append(args, v)
+			}
+			inPlaceHolders = "AND level IN (?" + strings.Repeat(",?", len(levels)-1) + ")"
 		}
 		args = append(args, limit)
 		err = db.Select(&conditions,
-			`SELECT * FROM isu_condition WHERE jia_isu_uuid = ?	AND timestamp < ? AND level IN `+inPlaceHolders+` ORDER BY timestamp DESC LIMIT ?`, args...,
+			`SELECT * FROM isu_condition WHERE jia_isu_uuid = ?	AND timestamp < ? `+inPlaceHolders+` ORDER BY timestamp DESC LIMIT ?`, args...,
 		)
 	} else {
 		args := make([]interface{}, 0, len(levels)+4)
 		args = append(args, jiaIsuUUID, endTime, startTime)
-		for _, v := range levels {
-			args = append(args, v)
+		if len(levels) < 3 {
+			for _, v := range levels {
+				args = append(args, v)
+			}
+			inPlaceHolders = "AND level IN (?" + strings.Repeat(",?", len(levels)-1) + ")"
 		}
 		args = append(args, limit)
 		err = db.Select(&conditions,
-			`SELECT * FROM isu_condition WHERE jia_isu_uuid = ? AND timestamp < ? AND ? <= timestamp AND level IN `+inPlaceHolders+` ORDER BY timestamp DESC LIMIT ?`,
+			`SELECT * FROM isu_condition WHERE jia_isu_uuid = ? AND timestamp < ? AND ? <= timestamp `+inPlaceHolders+` ORDER BY timestamp DESC LIMIT ?`,
 			args...,
 		)
 	}
