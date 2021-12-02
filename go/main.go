@@ -579,7 +579,7 @@ func getIsuList(c echo.Context) error {
 	}
 
 	sort.Slice(isuList, func(i, j int) bool {
-		return isuList[i].ID < isuList[j].ID
+		return isuList[i].ID > isuList[j].ID
 	})
 
 	responseList := []GetIsuListResponse{}
