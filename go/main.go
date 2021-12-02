@@ -1184,7 +1184,7 @@ func getTrend(c echo.Context) error {
 		return c.JSON(http.StatusOK, v)
 	}
 
-	defer omTrendRes.M.Lock()
+	omTrendRes.M.Lock()
 	defer omTrendRes.M.Unlock()
 
 	characterList := []string{
