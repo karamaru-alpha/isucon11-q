@@ -254,7 +254,7 @@ func (o *omTrendResT) Get() ([]TrendResponse, bool) {
 
 func (o *omTrendResT) Set(v []TrendResponse) {
 	o.M.Lock()
-	o.T = time.Now().Add(time.Hour)
+	o.T = time.Now().Add(time.Second * 10)
 	o.V = v
 	o.M.Unlock()
 }
