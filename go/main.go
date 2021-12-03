@@ -35,6 +35,7 @@ const (
 	frontendContentsPath        = "../public"
 	jiaJWTSigningKeyPath        = "../ec256-public.pem"
 	defaultIconFilePath         = "../NoImage.jpg"
+	iconFilePath                = "../icons"
 	defaultJIAServiceURL        = "http://localhost:5000"
 	mysqlErrNumDuplicateEntry   = 1062
 	conditionLevelInfo          = "info"
@@ -472,6 +473,34 @@ func postInitialize(c echo.Context) error {
 		return c.NoContent(http.StatusInternalServerError)
 	}
 
+	// 	ID         int       `db:"id" json:"id"`
+	// JIAIsuUUID string    `db:"jia_isu_uuid" json:"jia_isu_uuid"`
+	// Name       string    `db:"name" json:"name"`
+	// Image      []byte    `db:"image" json:"-"`
+	// Character  string    `db:"character" json:"character"`
+	// JIAUserID  string    `db:"jia_user_id" json:"-"`
+	// CreatedAt  time.Time `db:"created_at" json:"-"`
+	// UpdatedAt  time.Time `db:"updated_at" json:"-"`
+
+	var isuImages []Isu
+	err = db.Select(&isuImages, `SELECT jia_isu_uuid, jia_user_id, image FROM isu`)
+	if err != nil {
+		return c.NoContent(http.StatusInternalServerError)
+	}
+	if err = os.RemoveAll(iconFilePath); err != nil {
+		return c.NoContent(http.StatusInternalServerError)
+	}
+	if err := os.MkdirAll(iconFilePath, os.ModePerm); err != nil {
+		return c.NoContent(http.StatusInternalServerError)
+	}
+
+	for _, v := range isuImages {
+		if err := os.WriteFile(fmt.Sprintf("%s/%s_%s", iconFilePath, v.JIAUserID, v.JIAIsuUUID), v.Image, os.ModePerm); err != nil {
+			c.Logger().Error(err)
+			return c.NoContent(http.StatusInternalServerError)
+		}
+	}
+
 	var isuList []Isu
 	err = db.Select(&isuList, `SELECT * FROM isu`)
 	if err != nil {
@@ -491,6 +520,9 @@ func postInitialize(c echo.Context) error {
 
 	initTrend()
 
+	if _, err = db.Exec(`ALTER TABLE isu DROP COLUMN image`); err != nil {
+		return c.NoContent(http.StatusInternalServerError)
+	}
 	return c.JSON(http.StatusOK, InitializeResponse{
 		Language: "go",
 	})
@@ -686,13 +718,23 @@ func postIsu(c echo.Context) error {
 		}
 		useDefaultImage = true
 	}
-
-	var image []byte
-
 	if useDefaultImage {
-		image, err = ioutil.ReadFile(defaultIconFilePath)
+		file, err := os.Open(defaultIconFilePath)
 		if err != nil {
 			goLog.Print(err)
+			return c.NoContent(http.StatusInternalServerError)
+		}
+		defer file.Close()
+
+		f, err := os.Create(fmt.Sprintf("%s/%s_%s", iconFilePath, jiaUserID, jiaIsuUUID))
+		if err != nil {
+			goLog.Print(err)
+			return c.NoContent(http.StatusInternalServerError)
+		}
+		defer f.Close()
+
+		_, err = io.Copy(f, file)
+		if err != nil {
 			return c.NoContent(http.StatusInternalServerError)
 		}
 	} else {
@@ -703,9 +745,15 @@ func postIsu(c echo.Context) error {
 		}
 		defer file.Close()
 
-		image, err = ioutil.ReadAll(file)
+		f, err := os.Create(fmt.Sprintf("%s/%s_%s", iconFilePath, jiaUserID, jiaIsuUUID))
 		if err != nil {
 			goLog.Print(err)
+			return c.NoContent(http.StatusInternalServerError)
+		}
+		defer f.Close()
+
+		_, err = io.Copy(f, file)
+		if err != nil {
 			return c.NoContent(http.StatusInternalServerError)
 		}
 	}
@@ -718,8 +766,8 @@ func postIsu(c echo.Context) error {
 	defer tx.Rollback()
 
 	_, err = tx.Exec("INSERT INTO `isu`"+
-		"	(`jia_isu_uuid`, `name`, `image`, `jia_user_id`) VALUES (?, ?, ?, ?)",
-		jiaIsuUUID, isuName, image, jiaUserID)
+		"	(`jia_isu_uuid`, `name`, `jia_user_id`) VALUES (?, ?, ?)",
+		jiaIsuUUID, isuName, jiaUserID)
 	if err != nil {
 		mysqlErr, ok := err.(*mysql.MySQLError)
 
@@ -842,15 +890,11 @@ func getIsuIcon(c echo.Context) error {
 
 	jiaIsuUUID := c.Param("jia_isu_uuid")
 
-	var image []byte
-	err = db.Get(&image, "SELECT `image` FROM `isu` WHERE `jia_isu_uuid` = ? AND `jia_user_id` = ?",
-		jiaIsuUUID, jiaUserID)
+	image, err := os.ReadFile(fmt.Sprintf("%s/%s_%s", iconFilePath, jiaUserID, jiaIsuUUID))
 	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
+		if errors.Is(err, os.ErrNotExist) {
 			return c.String(http.StatusNotFound, "not found: isu")
 		}
-
-		goLog.Printf("db error: %v", err)
 		return c.NoContent(http.StatusInternalServerError)
 	}
 
