@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"crypto/ecdsa"
 	"database/sql"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -22,6 +21,7 @@ import (
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/go-sql-driver/mysql"
+	"github.com/goccy/go-json"
 	"github.com/gorilla/sessions"
 	"github.com/jmoiron/sqlx"
 	"github.com/labstack/echo/v4"
@@ -55,6 +55,23 @@ var (
 
 	postIsuConditionTargetBaseURL string // JIAへのactivate時に登録する，ISUがconditionを送る先のURL
 )
+
+type JSONSerializer struct{}
+
+func (j *JSONSerializer) Serialize(c echo.Context, i interface{}, indent string) error {
+	enc := json.NewEncoder(c.Response())
+	return enc.Encode(i)
+}
+
+func (j *JSONSerializer) Deserialize(c echo.Context, i interface{}) error {
+	err := json.NewDecoder(c.Request().Body).Decode(i)
+	if ute, ok := err.(*json.UnmarshalTypeError); ok {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Unmarshal type error: expected=%v, got=%v, field=%v, offset=%v", ute.Type, ute.Value, ute.Field, ute.Offset)).SetInternal(err)
+	} else if se, ok := err.(*json.SyntaxError); ok {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Syntax error: offset=%v, error=%v", se.Offset, se.Error())).SetInternal(err)
+	}
+	return err
+}
 
 type Config struct {
 	Name string `db:"name"`
@@ -327,6 +344,7 @@ func main() {
 	goLog.SetOutput(io.MultiWriter(logfile, os.Stdout))
 
 	e := echo.New()
+	e.JSONSerializer = &JSONSerializer{}
 	e.Use(middleware.Recover())
 
 	e.POST("/initialize", postInitialize)

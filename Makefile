@@ -7,6 +7,7 @@ before:
 	sudo cp isucondition.conf /etc/nginx/sites-enabled/isucondition.conf
 	sudo cp my.cnf /etc/mysql/my.cnf
 # ビルド
+	(cd go && go mod tidy)
 	(cd go && go build -o isucondition)
 # 掃除
 	sudo rm /var/log/mysql/slow-query.log 2> /dev/null
