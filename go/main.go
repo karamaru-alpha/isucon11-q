@@ -254,8 +254,8 @@ type omIsuConditionPostsT struct {
 var omIsuConditionPosts omIsuConditionPostsT
 
 func (o *omIsuConditionPostsT) Get() []IsuCondition {
-	o.M.RLock()
-	defer o.M.RUnlock()
+	o.M.Lock()
+	defer o.M.Unlock()
 	isuConList := o.V
 	o.V = []IsuCondition{}
 	return isuConList
