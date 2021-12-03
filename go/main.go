@@ -332,9 +332,9 @@ func init() {
 		log.Fatalf("failed to parse ECDSA public key: %v", err)
 	}
 
-	http.DefaultTransport.(*http.Transport).MaxIdleConns = 0           // 無制限
-	http.DefaultTransport.(*http.Transport).MaxIdleConnsPerHost = 1024 // 0にすると2になっちゃう
-	http.DefaultTransport.(*http.Transport).ForceAttemptHTTP2 = true   // go1.13以上
+	http.DefaultTransport.(*http.Transport).MaxIdleConns = 0          // 無制限
+	http.DefaultTransport.(*http.Transport).MaxIdleConnsPerHost = 100 // 0にすると2になっちゃう
+	http.DefaultTransport.(*http.Transport).ForceAttemptHTTP2 = true  // go1.13以上
 }
 
 func main() {
