@@ -890,6 +890,10 @@ func getIsuIcon(c echo.Context) error {
 
 	jiaIsuUUID := c.Param("jia_isu_uuid")
 
+	if !omIsuExist.Exist(jiaIsuUUID) {
+		return c.String(http.StatusNotFound, "not found: isu")
+	}
+
 	image, err := os.ReadFile(fmt.Sprintf("%s/%s_%s", iconFilePath, jiaUserID, jiaIsuUUID))
 	if err != nil {
 		return c.String(http.StatusNotFound, "not found: isu")
