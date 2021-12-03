@@ -1345,7 +1345,7 @@ func getTrend(c echo.Context) error {
 }
 
 func postIsuConditionLoop() {
-	for range time.Tick(time.Millisecond * 500) {
+	for range time.Tick(time.Millisecond * 250) {
 		isuConList := omIsuConditionPosts.Get()
 		if len(isuConList) == 0 {
 			continue
