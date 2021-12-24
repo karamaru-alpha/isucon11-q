@@ -1227,7 +1227,7 @@ func getIsuConditionsFromDB(db *sqlx.DB, jiaIsuUUID string, endTime time.Time, c
 		return nil, fmt.Errorf("db error: %v", err)
 	}
 
-	conditionsResponse := []*GetIsuConditionResponse{}
+	conditionsResponse := make([]*GetIsuConditionResponse, 0, limit)
 	for _, c := range conditions {
 		data := GetIsuConditionResponse{
 			JIAIsuUUID:     c.JIAIsuUUID,
