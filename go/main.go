@@ -19,6 +19,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/bytedance/sonic/decoder"
+	"github.com/bytedance/sonic/encoder"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/go-sql-driver/mysql"
 	"github.com/goccy/go-json"
@@ -60,12 +62,16 @@ var (
 type JSONSerializer struct{}
 
 func (j *JSONSerializer) Serialize(c echo.Context, i interface{}, indent string) error {
-	enc := json.NewEncoder(c.Response())
-	return enc.Encode(i)
+	// enc := json.NewEncoder(c.Response())
+	_, err := encoder.Encode(i, 0)
+	return err
 }
 
 func (j *JSONSerializer) Deserialize(c echo.Context, i interface{}) error {
-	err := json.NewDecoder(c.Request().Body).Decode(i)
+	// err := json.NewDecoder(c.Request().Body).Decode(i)
+	buf := new(bytes.Buffer)
+	buf.ReadFrom(c.Request().Body)
+	err := decoder.NewDecoder(buf.String()).Decode(i)
 	if ute, ok := err.(*json.UnmarshalTypeError); ok {
 		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Unmarshal type error: expected=%v, got=%v, field=%v, offset=%v", ute.Type, ute.Value, ute.Field, ute.Offset)).SetInternal(err)
 	} else if se, ok := err.(*json.SyntaxError); ok {
