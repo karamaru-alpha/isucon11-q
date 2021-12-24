@@ -76,7 +76,6 @@ func (j *JSONSerializer) Deserialize(c echo.Context, i interface{}) error {
 	buf := new(bytes.Buffer)
 	buf.ReadFrom(c.Request().Body)
 	err := decoder.NewDecoder(buf.String()).Decode(i)
-	goLog.Println(err)
 	if ute, ok := err.(*json.UnmarshalTypeError); ok {
 		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Unmarshal type error: expected=%v, got=%v, field=%v, offset=%v", ute.Type, ute.Value, ute.Field, ute.Offset)).SetInternal(err)
 	} else if se, ok := err.(*json.SyntaxError); ok {
