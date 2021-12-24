@@ -63,8 +63,11 @@ type JSONSerializer struct{}
 
 func (j *JSONSerializer) Serialize(c echo.Context, i interface{}, indent string) error {
 	// enc := json.NewEncoder(c.Response())
-	_, err := encoder.Encode(i, 0)
-	goLog.Println(err)
+	buf, err := encoder.Encode(i, 0)
+	if err != nil {
+		return err
+	}
+	_, err = c.Response().Write(buf)
 	return err
 }
 
