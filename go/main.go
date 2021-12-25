@@ -908,12 +908,14 @@ func getIsuIcon(c echo.Context) error {
 		return c.String(http.StatusNotFound, "not found: isu")
 	}
 
-	image, err := os.ReadFile(fmt.Sprintf("%s/%s_%s", iconFilePath, jiaUserID, jiaIsuUUID))
-	if err != nil {
-		return c.String(http.StatusNotFound, "not found: isu")
-	}
+	// image, err := os.ReadFile(fmt.Sprintf("%s/%s_%s", iconFilePath, jiaUserID, jiaIsuUUID))
+	// if err != nil {
+	// 	return c.String(http.StatusNotFound, "not found: isu")
+	// }
+	c.Response().Header().Set("X-Accel-Redirect", fmt.Sprintf("/icon/%s_%s", jiaUserID, jiaIsuUUID))
 
-	return c.Blob(http.StatusOK, "", image)
+	// return c.Blob(http.StatusOK, "", image)
+	return c.NoContent(http.StatusOK)
 }
 
 // * GET /api/isu/:jia_isu_uuid/graph
