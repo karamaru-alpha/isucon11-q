@@ -912,6 +912,11 @@ func getIsuIcon(c echo.Context) error {
 	// if err != nil {
 	// 	return c.String(http.StatusNotFound, "not found: isu")
 	// }
+
+	if _, err := os.Stat(fmt.Sprintf("%s/%s_%s", iconFilePath, jiaUserID, jiaIsuUUID)); err != nil {
+		goLog.Printf("/icon/%s_%s is not found", jiaUserID, jiaIsuUUID)
+		return c.String(http.StatusNotFound, "not found: isu")
+	}
 	goLog.Printf("/icon/%s_%s", jiaUserID, jiaIsuUUID)
 	c.Response().Header().Set("X-Accel-Redirect", fmt.Sprintf("/icon/%s_%s", jiaUserID, jiaIsuUUID))
 
