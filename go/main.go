@@ -912,7 +912,6 @@ func getIsuIcon(c echo.Context) error {
 	// if err != nil {
 	// 	return c.String(http.StatusNotFound, "not found: isu")
 	// }
-	c.Response().Header().Set("Content-Type", "text/plain")
 	c.Response().Header().Set("X-Accel-Redirect", fmt.Sprintf("/icon/%s_%s", jiaUserID, jiaIsuUUID))
 
 	// return c.Blob(http.StatusOK, "", image)
