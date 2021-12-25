@@ -892,15 +892,15 @@ func getIsuID(c echo.Context) error {
 // * GET /api/isu/:jia_isu_uuid/icon
 // ISUのアイコンを取得
 func getIsuIcon(c echo.Context) error {
-	jiaUserID, errStatusCode, err := getUserIDFromSession(c)
-	if err != nil {
-		if errStatusCode == http.StatusUnauthorized {
-			return c.String(http.StatusUnauthorized, "you are not signed in")
-		}
+	// jiaUserID, errStatusCode, err := getUserIDFromSession(c)
+	// if err != nil {
+	// 	if errStatusCode == http.StatusUnauthorized {
+	// 		return c.String(http.StatusUnauthorized, "you are not signed in")
+	// 	}
 
-		goLog.Print(err)
-		return c.NoContent(http.StatusInternalServerError)
-	}
+	// 	goLog.Print(err)
+	// 	return c.NoContent(http.StatusInternalServerError)
+	// }
 
 	jiaIsuUUID := c.Param("jia_isu_uuid")
 
