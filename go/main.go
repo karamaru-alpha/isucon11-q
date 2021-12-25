@@ -905,7 +905,6 @@ func getIsuIcon(c echo.Context) error {
 	jiaIsuUUID := c.Param("jia_isu_uuid")
 
 	if !omIsuExist.Exist(jiaIsuUUID) {
-		fmt.Printf("/icon/%s_%s", jiaUserID, jiaIsuUUID)
 		return c.String(http.StatusNotFound, "not found: isu")
 	}
 
@@ -913,6 +912,7 @@ func getIsuIcon(c echo.Context) error {
 	// if err != nil {
 	// 	return c.String(http.StatusNotFound, "not found: isu")
 	// }
+	goLog.Printf("/icon/%s_%s", jiaUserID, jiaIsuUUID)
 	c.Response().Header().Set("X-Accel-Redirect", fmt.Sprintf("/icon/%s_%s", jiaUserID, jiaIsuUUID))
 
 	// return c.Blob(http.StatusOK, "", image)
