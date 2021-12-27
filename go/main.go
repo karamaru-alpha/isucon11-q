@@ -393,7 +393,6 @@ func main() {
 	}
 	const SQL_CONN_COUNT = 30
 	db.SetMaxIdleConns(SQL_CONN_COUNT)
-	db.SetMaxOpenConns(SQL_CONN_COUNT)
 	db.SetConnMaxLifetime(2 * time.Minute)
 	defer db.Close()
 
