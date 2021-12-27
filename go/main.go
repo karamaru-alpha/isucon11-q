@@ -391,8 +391,8 @@ func main() {
 		e.Logger.Fatalf("failed to connect db: %v", err)
 		return
 	}
-	db.SetMaxOpenConns(25)
-	db.SetMaxIdleConns(25)
+	db.SetMaxOpenConns(5)
+	db.SetMaxIdleConns(5)
 	db.SetConnMaxLifetime(2 * time.Minute)
 	defer db.Close()
 
