@@ -391,13 +391,13 @@ func main() {
 		e.Logger.Fatalf("failed to connect db: %v", err)
 		return
 	}
-	const SQL_CONN_COUNT = 10
+	// const SQL_CONN_COUNT = 10
 	// 最大接続数
-	db.SetMaxOpenConns(SQL_CONN_COUNT)
+	// db.SetMaxOpenConns(SQL_CONN_COUNT)
 	// プールできるコネクションの数
-	db.SetMaxIdleConns(SQL_CONN_COUNT)
+	// db.SetMaxIdleConns(SQL_CONN_COUNT)
 	// 接続が確立されてからコネクションを保持できる最大時間
-	db.SetConnMaxLifetime(SQL_CONN_COUNT * time.Second)
+	// db.SetConnMaxLifetime(SQL_CONN_COUNT * time.Second)
 	defer db.Close()
 
 	postIsuConditionTargetBaseURL = os.Getenv("POST_ISUCONDITION_TARGET_BASE_URL")
