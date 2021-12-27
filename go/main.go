@@ -391,7 +391,7 @@ func main() {
 		e.Logger.Fatalf("failed to connect db: %v", err)
 		return
 	}
-	const SQL_CONN_COUNT = 10
+	const SQL_CONN_COUNT = 5
 	db.SetMaxIdleConns(SQL_CONN_COUNT)
 	db.SetMaxOpenConns(SQL_CONN_COUNT)
 	db.SetConnMaxLifetime(2 * time.Minute)
