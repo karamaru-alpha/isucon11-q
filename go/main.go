@@ -393,7 +393,6 @@ func main() {
 	}
 	db.SetMaxOpenConns(5)
 	db.SetMaxIdleConns(5)
-	db.SetConnMaxLifetime(2 * time.Minute)
 	defer db.Close()
 
 	postIsuConditionTargetBaseURL = os.Getenv("POST_ISUCONDITION_TARGET_BASE_URL")
