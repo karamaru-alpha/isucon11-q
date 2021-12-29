@@ -60,3 +60,7 @@ setup:
 .PHONY: sql
 sql:
 	mysql -uisucon -pisucon isucondition
+
+.PHONY: log
+log:
+	sudo cat /var/log/go.log
